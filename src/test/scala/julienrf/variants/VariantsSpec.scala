@@ -13,31 +13,44 @@ object VariantsSpec extends Specification {
   val bar = Bar(42)
   val baz = Baz("bah")
 
-  implicit val fooFormat: Format[Foo] = {
-    import play.api.libs.json.{Writes, Reads}
+  implicit val fooFormat: Format[Foo] = Variants.format[Foo]
 
-    val writes = Writes[Foo] {
-      case bar: Bar => Json.toJson(bar)(Json.writes[Bar]).as[JsObject] + ("$variant" -> JsString("Bar"))
-      case baz: Baz => Json.toJson(baz)(Json.writes[Baz]).as[JsObject] + ("$variant" -> JsString("Baz"))
-    }
+  sealed trait A
+  case class B(x: Int) extends A
+  case class C(x: Int) extends A
 
-    val reads = Reads[Foo] { json =>
-      (json \ "$variant").validate[String].flatMap {
-        case "Bar" => Json.fromJson(json)(Json.reads[Bar])
-        case "Baz" => Json.fromJson(json)(Json.reads[Baz])
-      }
-    }
-
-    Format(reads, writes)
-  }
-
-  //implicit val fooFormat: Format[Foo] = Variants.format[Foo]
+  sealed trait Top
+  case class Concrete1() extends Top
+  sealed trait Middle extends Top
+  case class Concrete2() extends Middle
 
   "Variants" should {
 
-    "Serialize and deserialize any variant of a sum type" in {
-      Json.fromJson[Foo](Json.toJson(bar)).get must equalTo (bar)
+    "Generate an additional JSON field containing the variant name" in {
+      (Json.toJson(bar) \ "$variant").as[String] must equalTo ("Bar")
+      (Json.toJson(baz) \ "$variant").as[String] must equalTo ("Baz")
     }
+
+    "Build the right variant from JSON data" in {
+      Json.obj("$variant" -> "Bar", "x" -> 0).as[Foo] must equalTo (Bar(0))
+      Json.obj("$variant" -> "Baz", "s" -> "hello").as[Foo] must equalTo (Baz("hello"))
+    }
+
+    "Serialize and deserialize any variant of a sum type" in {
+      Json.toJson(bar).as[Foo] must equalTo (bar)
+      Json.toJson(baz).as[Foo] must equalTo (baz)
+    }
+
+    "Support variants with the same types" in {
+      implicit val format = Variants.format[A]
+      Json.toJson(B(42)).as[A] must equalTo (B(42))
+      Json.toJson(C(0)).as[A] must equalTo (C(0))
+    }
+
+    /*"Support hierarchies with more than one level" in {
+      implicit val format = Variants.format[Top]
+      Json.toJson(Concrete2()).as[Top] must equalTo (Concrete2())
+    }*/
 
   }
 

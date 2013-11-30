@@ -16,5 +16,3 @@ resolvers ++= Seq(
 )
 
 addCompilerPlugin("org.scala-lang.plugins" % "macro-paradise" % "2.0.0-SNAPSHOT" cross CrossVersion.full)
-
-scalacOptions += "-Ymacro-debug-lite"
