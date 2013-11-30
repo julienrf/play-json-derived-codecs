@@ -1,6 +1,8 @@
+organization := "com.github.julienrf"
+
 name := "play-json-variants"
 
-organization := "com.github.julienrf"
+version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.10.3"
 
@@ -16,3 +18,5 @@ resolvers ++= Seq(
 )
 
 addCompilerPlugin("org.scala-lang.plugins" % "macro-paradise" % "2.0.0-SNAPSHOT" cross CrossVersion.full)
+
+publishTo := Some(Resolver.file("Github Pages", Path.userHome / "sites" / "julienrf.github.com" / (if (version.value.trim.endsWith("SNAPSHOT")) "repo-snapshots" else "repo") asFile))

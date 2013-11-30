@@ -19,11 +19,6 @@ object VariantsSpec extends Specification {
   case class B(x: Int) extends A
   case class C(x: Int) extends A
 
-  sealed trait Top
-  case class Concrete1() extends Top
-  sealed trait Middle extends Top
-  case class Concrete2() extends Middle
-
   "Variants" should {
 
     "Generate an additional JSON field containing the variant name" in {
@@ -46,11 +41,6 @@ object VariantsSpec extends Specification {
       Json.toJson(B(42)).as[A] must equalTo (B(42))
       Json.toJson(C(0)).as[A] must equalTo (C(0))
     }
-
-    /*"Support hierarchies with more than one level" in {
-      implicit val format = Variants.format[Top]
-      Json.toJson(Concrete2()).as[Top] must equalTo (Concrete2())
-    }*/
 
   }
 
