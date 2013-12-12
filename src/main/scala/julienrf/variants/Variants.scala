@@ -63,7 +63,7 @@ object Variants {
 
       val writesCases = for (variant <- variants) yield {
         val term = newTermName(c.fresh())
-        cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded}))"""
+        cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded}))"""
       }
       val writes = q"play.api.libs.json.Writes[$baseClass] { case ..$writesCases }"
 
