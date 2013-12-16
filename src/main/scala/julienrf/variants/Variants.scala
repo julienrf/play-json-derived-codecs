@@ -57,28 +57,41 @@ object Variants {
       }
       // Get all the possible variants of this type
       val variants = baseClass.knownDirectSubclasses
-      for (variant <- variants if !variant.asClass.isCaseClass) {
+      for (variant <- variants if !(variant.asClass.isCaseClass||variant.isModuleClass)) {
         c.abort(c.enclosingPosition, s"$variant is not a case class")
       }
 
       val writesCases = for (variant <- variants) yield {
-        val term = newTermName(c.fresh())
-        cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded}))"""
+          val term = newTermName(c.fresh())
+        if(variant.asClass.isCaseClass && !variant.isModuleClass){
+          cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded}))"""
+        }else{
+          cq"""$term: $variant => play.api.libs.json.JsString(${variant.name.decoded})"""
+        }
       }
       val writes = q"play.api.libs.json.Writes[$baseClass] { case ..$writesCases }"
 
-      val readsCases = for (variant <- variants) yield {
+      val readsCases = for (variant <- variants if variant.asClass.isCaseClass && !variant.isModuleClass) yield {
         cq"""${variant.name.decoded} => play.api.libs.json.Json.fromJson(json)(play.api.libs.json.Json.reads[$variant])"""
       }
-      val reads =
+      val readsObjCases = for (variant <- variants if variant.isModuleClass) yield {
+        val term = newTermName(variant.name.decoded)
+        cq"""s if s ==${variant.name.decoded} => JsSuccess(${term})"""
+      }
+      val reads = if(!readsCases.isEmpty){
         q"""
            play.api.libs.json.Reads(json =>
              (json \ "$$variant").validate[String].flatMap { case ..$readsCases }
            )
          """
+      }else{
+        q"""
+           play.api.libs.json.Reads(json =>
+             json.validate[String].flatMap{  case ..$readsObjCases}
+           )
+         """
+      }
       c.Expr(q"play.api.libs.json.Format($reads, $writes)")
     }
-
   }
-
 }
