@@ -9,11 +9,27 @@ object VariantsSpec extends Specification {
   sealed trait Foo
   case class Bar(x: Int) extends Foo
   case class Baz(s: String) extends Foo
+  case object Bar extends Foo
+
+  sealed trait Status
+  object Status{
+    def apply(s:String):Option[Status]=s match {
+      case todo if todo == ToDo.toString => Some(ToDo)
+      case done if done == Done.toString => Some(Done)
+      case _ => None
+    }
+  }
+  case object ToDo extends Status
+  case object Done extends Status
 
   val bar = Bar(42)
   val baz = Baz("bah")
 
   implicit val fooFormat: Format[Foo] = Variants.format[Foo]
+  implicit val statusReads:Reads[Status] = play.api.libs.json.Reads(json =>
+    json.validate[String].flatMap { case s if s == ToDo.toString => JsSuccess(ToDo) }
+  )
+  implicit val statusFormat: Format[Status] = Variants.format[Status]
 
   sealed trait A
   case class B(x: Int) extends A
@@ -42,6 +58,15 @@ object VariantsSpec extends Specification {
       Json.toJson(C(0)).as[A] must equalTo (C(0))
     }
 
+    "Support variants for case objects based on object's toString" in {
+      Json.toJson(ToDo) must equalTo(JsString("ToDo"))
+      Json.toJson(Done) must equalTo(JsString("Done"))
+    }
+
+    "Support variants for case objects" in {
+      Json.toJson(ToDo).as[Status] must equalTo (ToDo)
+      Json.toJson(Done).as[Status] must equalTo (Done)
+    }
   }
 
 }
