@@ -87,6 +87,6 @@ The `Variants.format[Foo]` is a Scala macro that takes as parameter the root typ
 
 # Known Limitations
 
-* For now the macro expects its type parameter to be the root **sealed trait** of a class hierarchy made of **case classes** ;
+* For now the macro expects its type parameter to be the root **sealed trait** of a class hierarchy made of **case classes** or **case objects** ;
 * Recursive types are not supported ;
 * Polymorphic types are not supported.
