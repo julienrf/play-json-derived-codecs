@@ -7,7 +7,7 @@ version := "0.1-SNAPSHOT"
 scalaVersion := "2.10.3"
 
 libraryDependencies ++= Seq(
-  "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+  "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
   "org.specs2" %% "specs2" % "2.3.4" % "test",
   "com.typesafe.play" %% "play-json" % "2.2.1"
 )
