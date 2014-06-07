@@ -67,6 +67,21 @@ import julienrf.variants.Variants
 implicit val format: Format[Foo] = Variants.format[Foo]
 ```
 
+By default the discriminator field is $variant, but you can specify your own field.
+
+```scala
+import julienrf.variants.Variants
+
+implicit val format: Format[Foo] = Variants.formatT[Foo]("type")
+```
+So that parameters will be serialized.
+
+```scala
+val bahJson = Json.obj("s" -> "hello", "type" -> "Bah") // This is a `Bah`
+val bazJson = Json.obj("s" -> "bye", "type" -> "Baz") // This is a `Baz`
+val barJson = Json.obj("x" -> "42", "type" -> "Bar") // And this is a `Bar`
+```
+
 # Installation
 
 Check that the following resolver is added to your sbt project:
