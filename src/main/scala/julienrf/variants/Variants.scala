@@ -3,7 +3,8 @@ package julienrf.variants
 import scala.language.experimental.macros
 
 import play.api.libs.json.Format
-import scala.reflect.macros.Context
+import scala.reflect.macros.whitebox
+import scala.reflect.macros.whitebox.Context
 
 object Variants {
 
@@ -13,7 +14,23 @@ object Variants {
    */
   def format[A]: Format[A] = macro Impl.format[A]
 
+  /**
+   *
+   * @param typeField type field name
+   * @tparam A The base type of a case class hierarchy.
+   * @return  A [[play.api.libs.json.Format]] for the type hierarchy of `A`.
+   */
+  def formatT[A](typeField: String): Format[A] = macro Impl.formatT[A]
+
   private object Impl {
+
+    /**
+     * Utility method for Variants Format with default type specified as "$variant"
+     */
+    def format[A : c.WeakTypeTag](c: whitebox.Context): c.Expr[Format[A]] = {
+      import c.universe._
+      formatT[A](c)(reify {"$variant"})
+    }
 
     /**
      * Given the following definition of class hierarchy `Foo`:
@@ -51,7 +68,7 @@ object Variants {
      * }}}
      *
      */
-    def format[A : c.WeakTypeTag](c: Context) = {
+    def formatT[A : c.WeakTypeTag](c: whitebox.Context)(typeField: c.Expr[String]): c.Expr[Format[A]] = {
       import c.universe._
       val baseClass = weakTypeOf[A].typeSymbol.asClass
       baseClass.typeSignature // SI-7046
@@ -66,28 +83,28 @@ object Variants {
 
       val writesCases = for (variant <- variants) yield {
         if (!variant.isModuleClass) {
-          val term = newTermName(c.fresh())
-          cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded}))"""
+          val term = TermName(c.freshName())
+          cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ($typeField -> play.api.libs.json.JsString(${variant.name.decodedName.toString}))"""
         } else {
-          cq"""_: $variant => play.api.libs.json.JsObject(Seq("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded})))"""
+          cq"""_: $variant => play.api.libs.json.JsObject(Seq($typeField -> play.api.libs.json.JsString(${variant.name.decodedName.toString})))"""
         }
       }
       val writes = q"play.api.libs.json.Writes[$baseClass] { case ..$writesCases }"
 
       val readsCases = for (variant <- variants) yield {
         if (!variant.isModuleClass) {
-          cq"""${variant.name.decoded} => play.api.libs.json.Json.fromJson(json)(play.api.libs.json.Json.reads[$variant])"""
+          cq"""${variant.name.decodedName.toString} => play.api.libs.json.Json.fromJson(json)(play.api.libs.json.Json.reads[$variant])"""
         } else {
-          cq"""${variant.name.decoded} => JsSuccess(${newTermName(variant.name.decoded)})"""
+          cq"""${variant.name.decodedName.toString} => JsSuccess(${TermName(variant.name.decodedName.toString)})"""
         }
       }
       val reads =
         q"""
            play.api.libs.json.Reads(json =>
-             (json \ "$$variant").validate[String].flatMap { case ..$readsCases }
+             (json \ $typeField).validate[String].flatMap { case ..$readsCases }
            )
          """
-      c.Expr(q"play.api.libs.json.Format($reads, $writes)")
+      c.Expr[Format[A]](q"play.api.libs.json.Format[$baseClass]($reads, $writes)")
     }
   }
 }
