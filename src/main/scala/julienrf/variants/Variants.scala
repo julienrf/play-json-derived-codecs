@@ -3,8 +3,8 @@ package julienrf.variants
 import scala.language.experimental.macros
 
 import play.api.libs.json.Format
-import scala.reflect.macros.whitebox
-import scala.reflect.macros.whitebox.Context
+// Kept in order to be compatible with 2.10
+import scala.reflect.macros.Context
 
 object Variants {
 
@@ -27,7 +27,7 @@ object Variants {
     /**
      * Utility method for Variants Format with default type specified as "$variant"
      */
-    def format[A : c.WeakTypeTag](c: whitebox.Context): c.Expr[Format[A]] = {
+    def format[A : c.WeakTypeTag](c: Context): c.Expr[Format[A]] = {
       import c.universe._
       formatT[A](c)(reify {"$variant"})
     }
@@ -68,7 +68,7 @@ object Variants {
      * }}}
      *
      */
-    def formatT[A : c.WeakTypeTag](c: whitebox.Context)(typeField: c.Expr[String]): c.Expr[Format[A]] = {
+    def formatT[A : c.WeakTypeTag](c: Context)(typeField: c.Expr[String]): c.Expr[Format[A]] = {
       import c.universe._
       val baseClass = weakTypeOf[A].typeSymbol.asClass
       baseClass.typeSignature // SI-7046
@@ -83,7 +83,7 @@ object Variants {
 
       val writesCases = for (variant <- variants) yield {
         if (!variant.isModuleClass) {
-          val term = TermName(c.freshName())
+          val term = newTermName(c.fresh())
           cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ($typeField -> play.api.libs.json.JsString(${variant.name.decodedName.toString}))"""
         } else {
           cq"""_: $variant => play.api.libs.json.JsObject(Seq($typeField -> play.api.libs.json.JsString(${variant.name.decodedName.toString})))"""
@@ -95,7 +95,7 @@ object Variants {
         if (!variant.isModuleClass) {
           cq"""${variant.name.decodedName.toString} => play.api.libs.json.Json.fromJson(json)(play.api.libs.json.Json.reads[$variant])"""
         } else {
-          cq"""${variant.name.decodedName.toString} => JsSuccess(${TermName(variant.name.decodedName.toString)})"""
+          cq"""${variant.name.decodedName.toString} => JsSuccess(${newTermName(variant.name.decodedName.toString)})"""
         }
       }
       val reads =
