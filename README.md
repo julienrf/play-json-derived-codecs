@@ -69,17 +69,13 @@ implicit val format: Format[Foo] = Variants.format[Foo]
 
 # Installation
 
-Check that the following resolver is added to your sbt project:
-
-```scala
-resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo-snapshots/"
-```
-
 Add the following dependency to your project:
 
 ```scala
-libraryDependencies += "com.github.julienrf" %% "play-json-variants" % "0.1-SNAPSHOT"
+libraryDependencies += "org.julienrf" %% "play-json-variants" % "0.2-SNAPSHOT"
 ```
+
+The 0.2 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
 
 # How Does It Work?
 

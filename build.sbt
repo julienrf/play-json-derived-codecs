@@ -1,24 +1,48 @@
-organization := "com.github.julienrf"
+organization := "org.julienrf"
 
 name := "play-json-variants"
 
-version := "0.1-SNAPSHOT"
+version := "0.2-SNAPSHOT"
 
-scalaVersion := "2.10.3"
+crossScalaVersions := Seq("2.10.4", "2.11.1")
 
-libraryDependencies ++= Seq(
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0" cross CrossVersion.full)
+
+libraryDependencies ++= (Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  "org.specs2" %% "specs2" % "2.3.4" % "test",
-  "com.typesafe.play" %% "play-json" % "2.2.1"
-)
+  "org.specs2" %% "specs2" % "2.3.12" % "test",
+  "com.typesafe.play" %% "play-json" % "2.3.0"
+) ++ (if (scalaVersion.value.startsWith("2.10")) Seq("org.scalamacros" %% "quasiquotes" % "2.0.0") else Seq.empty))
 
-resolvers ++= Seq(
-  "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
-  Resolver.sonatypeRepo("snapshots")
-)
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
-addCompilerPlugin("org.scala-lang.plugins" % "macro-paradise" % "2.0.0-SNAPSHOT" cross CrossVersion.full)
+publishTo := {
+  val nexus = "https://oss.sonatype.org"
+  if (isSnapshot.value) Some("snapshots" at s"$nexus/content/repositories/snapshots")
+  else Some("releases" at s"$nexus/service/local/staging/deploy/maven2")
+}
 
-publishTo := Some(Resolver.file("Github Pages", Path.userHome / "sites" / "julienrf.github.com" / (if (version.value.trim.endsWith("SNAPSHOT")) "repo-snapshots" else "repo") asFile))
+pomExtra := (
+  <url>http://github.com/julienrf/play-json-variants</url>
+    <licenses>
+      <license>
+        <name>MIT License</name>
+        <url>http://opensource.org/licenses/mit-license.php</url>
+      </license>
+    </licenses>
+    <scm>
+      <url>git@github.com:julienrf/play-json-variants.git</url>
+      <connection>scm:git:git@github.com:julienrf/play-json-variants.git</connection>
+    </scm>
+    <developers>
+      <developer>
+        <id>julienrf</id>
+        <name>Julien Richard-Foy</name>
+        <url>http://julien.richard-foy.fr</url>
+      </developer>
+    </developers>
+  )
 
-// scalacOptions += "-Ymacro-debug-lite"
+useGpg := true
+
+scalacOptions ++= Seq("-feature", "-Xlint", "-deprecation"/*, "-Ymacro-debug-lite"*/)

@@ -51,7 +51,7 @@ object Variants {
      * }}}
      *
      */
-    def format[A : c.WeakTypeTag](c: Context) = {
+    def format[A : c.WeakTypeTag](c: Context): c.Expr[Format[A]] = {
       import c.universe._
       val baseClass = weakTypeOf[A].typeSymbol.asClass
       baseClass.typeSignature // SI-7046
@@ -67,18 +67,18 @@ object Variants {
       val writesCases = for (variant <- variants) yield {
         if (!variant.isModuleClass) {
           val term = newTermName(c.fresh())
-          cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded}))"""
+          cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decodedName.toString}))"""
         } else {
-          cq"""_: $variant => play.api.libs.json.JsObject(Seq("$$variant" -> play.api.libs.json.JsString(${variant.name.decoded})))"""
+          cq"""_: $variant => play.api.libs.json.JsObject(Seq("$$variant" -> play.api.libs.json.JsString(${variant.name.decodedName.toString})))"""
         }
       }
       val writes = q"play.api.libs.json.Writes[$baseClass] { case ..$writesCases }"
 
       val readsCases = for (variant <- variants) yield {
         if (!variant.isModuleClass) {
-          cq"""${variant.name.decoded} => play.api.libs.json.Json.fromJson(json)(play.api.libs.json.Json.reads[$variant])"""
+          cq"""${variant.name.decodedName.toString} => play.api.libs.json.Json.fromJson(json)(play.api.libs.json.Json.reads[$variant])"""
         } else {
-          cq"""${variant.name.decoded} => JsSuccess(${newTermName(variant.name.decoded)})"""
+          cq"""${variant.name.decodedName.toString} => JsSuccess(${newTermName(variant.name.decodedName.toString)})"""
         }
       }
       val reads =
@@ -87,7 +87,7 @@ object Variants {
              (json \ "$$variant").validate[String].flatMap { case ..$readsCases }
            )
          """
-      c.Expr(q"play.api.libs.json.Format($reads, $writes)")
+      c.Expr[Format[A]](q"play.api.libs.json.Format[$baseClass]($reads, $writes)")
     }
   }
 }
