@@ -78,7 +78,7 @@ object Variants {
         if (!variant.isModuleClass) {
           cq"""${variant.name.decodedName.toString} => play.api.libs.json.Json.fromJson(json)(play.api.libs.json.Json.reads[$variant])"""
         } else {
-          cq"""${variant.name.decodedName.toString} => JsSuccess(${newTermName(variant.name.decodedName.toString)})"""
+          cq"""${variant.name.decodedName.toString} => play.api.libs.json.JsSuccess(${newTermName(variant.name.decodedName.toString)})"""
         }
       }
       val reads =
