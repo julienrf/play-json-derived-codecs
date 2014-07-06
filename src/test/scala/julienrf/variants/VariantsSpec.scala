@@ -1,8 +1,7 @@
 package julienrf.variants
 
 import org.specs2.mutable.Specification
-import play.api.libs.json._
-import play.api.libs.json.JsSuccess
+import play.api.libs.json.{Json,Format}
 
 object VariantsSpec extends Specification {
 
