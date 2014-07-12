@@ -13,7 +13,14 @@ object Variants {
    */
   def format[A]: Format[A] = macro Impl.format[A]
 
+  def format[A](discriminator: String): Format[A] = macro Impl.formatDiscriminator[A]
+
   private object Impl {
+
+    def format[A : c.WeakTypeTag](c: Context): c.Expr[Format[A]] = {
+      import c.universe._
+      formatDiscriminator[A](c)(reify("$variant"))
+    }
 
     /**
      * Given the following definition of class hierarchy `Foo`:
@@ -51,7 +58,7 @@ object Variants {
      * }}}
      *
      */
-    def format[A : c.WeakTypeTag](c: Context): c.Expr[Format[A]] = {
+    def formatDiscriminator[A : c.WeakTypeTag](c: Context)(discriminator: c.Expr[String]): c.Expr[Format[A]] = {
       import c.universe._
       val baseClass = weakTypeOf[A].typeSymbol.asClass
       baseClass.typeSignature // SI-7046
@@ -67,9 +74,9 @@ object Variants {
       val writesCases = for (variant <- variants) yield {
         if (!variant.isModuleClass) {
           val term = newTermName(c.fresh())
-          cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ("$$variant" -> play.api.libs.json.JsString(${variant.name.decodedName.toString}))"""
+          cq"""$term: $variant => play.api.libs.json.Json.toJson($term)(play.api.libs.json.Json.writes[$variant]).as[play.api.libs.json.JsObject] + ($discriminator -> play.api.libs.json.JsString(${variant.name.decodedName.toString}))"""
         } else {
-          cq"""_: $variant => play.api.libs.json.JsObject(Seq("$$variant" -> play.api.libs.json.JsString(${variant.name.decodedName.toString})))"""
+          cq"""_: $variant => play.api.libs.json.JsObject(Seq($discriminator -> play.api.libs.json.JsString(${variant.name.decodedName.toString})))"""
         }
       }
       val writes = q"play.api.libs.json.Writes[$baseClass] { case ..$writesCases }"
@@ -84,7 +91,7 @@ object Variants {
       val reads =
         q"""
            play.api.libs.json.Reads(json =>
-             (json \ "$$variant").validate[String].flatMap { case ..$readsCases }
+             (json \ $discriminator).validate[String].flatMap { case ..$readsCases }
            )
          """
       c.Expr[Format[A]](q"play.api.libs.json.Format[$baseClass]($reads, $writes)")

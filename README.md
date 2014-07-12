@@ -67,6 +67,12 @@ import julienrf.variants.Variants
 implicit val format: Format[Foo] = Variants.format[Foo]
 ```
 
+By default the field used to discriminate the target object’s type is named `$variant` but you can supply another name:
+
+```scala
+implicit val format: Format[Foo] = Variants.format[Foo]("type")
+```
+
 # Installation
 
 Add the following dependency to your project:

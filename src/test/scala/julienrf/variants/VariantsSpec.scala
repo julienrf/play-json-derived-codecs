@@ -54,6 +54,15 @@ object VariantsSpec extends Specification {
       Json.toJson(ToDo).as[Status] must equalTo (ToDo)
       Json.toJson(Done).as[Status] must equalTo (Done)
     }
+
+    "Support customization of discriminator field name" in {
+      implicit val format = Variants.format[A]("type")
+      (Json.toJson(B(42)) \ "type").as[String] must equalTo ("B")
+      (Json.toJson(C(0)) \ "type").as[String] must equalTo ("C")
+      Json.obj("type" -> "B", "x" -> 0).as[A] must equalTo (B(0))
+      Json.obj("type" -> "C", "x" -> 0).as[A] must equalTo (C(0))
+
+    }
   }
 
 }
