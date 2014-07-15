@@ -78,7 +78,7 @@ implicit val format: Format[Foo] = Variants.format[Foo]("type")
 Add the following dependency to your project:
 
 ```scala
-libraryDependencies += "org.julienrf" %% "play-json-variants" % "0.2-SNAPSHOT"
+libraryDependencies += "org.julienrf" %% "play-json-variants" % "0.2"
 ```
 
 The 0.2 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
