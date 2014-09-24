@@ -89,10 +89,10 @@ implicit val writes: Writes[Foo] = Variants.writes[Foo]("type")
 Add the following dependency to your project:
 
 ```scala
-libraryDependencies += "org.julienrf" %% "play-json-variants" % "0.3"
+libraryDependencies += "org.julienrf" %% "play-json-variants" % "1.0.0"
 ```
 
-The 0.3 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
+The 1.0.0 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
 
 # How Does It Work?
 
@@ -107,4 +107,4 @@ The `Variants.format[Foo]` is a Scala macro that takes as parameter the root typ
 
 # Changelog
 
-- v0.3: Support for `Reads`, `Writes` and `Format`
+- v1.0.0: Support for `Reads`, `Writes` and `Format`
