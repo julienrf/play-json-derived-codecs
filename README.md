@@ -67,10 +67,21 @@ import julienrf.variants.Variants
 implicit val format: Format[Foo] = Variants.format[Foo]
 ```
 
+You can also just generate a `Reads` or a `Writes`:
+
+```scala
+import julienrf.variants.Variants
+
+implicit val reads: Reads[Foo] = Variants.reads[Foo]
+implicit val writes: Writes[Foo] = Variants.writes[Foo]
+```
+
 By default the field used to discriminate the target object’s type is named `$variant` but you can supply another name:
 
 ```scala
 implicit val format: Format[Foo] = Variants.format[Foo]("type")
+implicit val reads: Reads[Foo] = Variants.reads[Foo]("type")
+implicit val writes: Writes[Foo] = Variants.writes[Foo]("type")
 ```
 
 # Installation
@@ -78,10 +89,10 @@ implicit val format: Format[Foo] = Variants.format[Foo]("type")
 Add the following dependency to your project:
 
 ```scala
-libraryDependencies += "org.julienrf" %% "play-json-variants" % "0.2"
+libraryDependencies += "org.julienrf" %% "play-json-variants" % "0.3"
 ```
 
-The 0.2 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
+The 0.3 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
 
 # How Does It Work?
 
@@ -93,3 +104,7 @@ The `Variants.format[Foo]` is a Scala macro that takes as parameter the root typ
 * Recursive types are not supported ;
 * Polymorphic types are not supported ;
 * Due to initialization order, your class hierarchy **must** be fully defined **before** `Variants.format` is used.
+
+# Changelog
+
+- v0.3: Support for `Reads`, `Writes` and `Format`

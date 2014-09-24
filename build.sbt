@@ -2,11 +2,11 @@ organization := "org.julienrf"
 
 name := "play-json-variants"
 
-version := "0.2"
+version := "0.3"
 
-crossScalaVersions := Seq("2.10.4", "2.11.1")
+crossScalaVersions := Seq("2.10.4", "2.11.2")
 
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0" cross CrossVersion.full)
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)
 
 libraryDependencies ++= (Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,

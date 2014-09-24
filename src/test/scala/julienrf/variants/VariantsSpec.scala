@@ -63,6 +63,18 @@ object VariantsSpec extends Specification {
       Json.obj("type" -> "C", "x" -> 0).as[A] must equalTo (C(0))
 
     }
+
+    "Generate just a Reads" in {
+      implicit val reads = Variants.reads[A]
+      Json.obj("x" -> 42, "$variant" -> "B").as[A] must equalTo (B(42))
+      Json.obj("x" -> 0, "$variant" -> "C").as[A] must equalTo (C(0))
+    }
+
+    "Generate just a Writes" in {
+      implicit val writes = Variants.writes[A]
+      Json.toJson(B(42)) must equalTo (Json.obj("x" -> 42, "$variant" -> "B"))
+      Json.toJson(C(0)) must equalTo (Json.obj("x" -> 0, "$variant" -> "C"))
+    }
   }
 
 }
