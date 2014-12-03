@@ -6,13 +6,16 @@ version := "1.0.0"
 
 crossScalaVersions := Seq("2.10.4", "2.11.2")
 
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)
-
 libraryDependencies ++= (Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
   "org.specs2" %% "specs2" % "2.3.12" % "test",
   "com.typesafe.play" %% "play-json" % "2.3.0"
-) ++ (if (scalaVersion.value.startsWith("2.10")) Seq("org.scalamacros" %% "quasiquotes" % "2.0.0") else Seq.empty))
+) ++ (
+  if (scalaVersion.value.startsWith("2.10")) Seq(
+    "org.scalamacros" %% "quasiquotes" % "2.0.0",
+    compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)
+  ) else Seq.empty
+))
 
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
