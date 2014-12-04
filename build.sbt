@@ -2,9 +2,9 @@ organization := "org.julienrf"
 
 name := "play-json-variants"
 
-version := "1.0.0"
+version := "1.0.1"
 
-crossScalaVersions := Seq("2.10.4", "2.11.2")
+crossScalaVersions := Seq("2.10.4", "2.11.4")
 
 libraryDependencies ++= (Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,

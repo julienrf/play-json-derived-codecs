@@ -1,6 +1,6 @@
-# Play! JSON Variants
+# Play JSON Variants
 
-This artifact provides a function `Variants.format[A]` that takes as parameter a root type hierarchy `A` and generates a Play! `Format[A]` JSON serializer/deserializer that supports all the subtypes of `A`.
+This artifact provides a function `Variants.format[A]` that takes as parameter a root type hierarchy `A` and generates a Play `Format[A]` JSON serializer/deserializer that supports all the subtypes of `A`.
 
 For instance, consider the following class hierarchy:
 
@@ -89,10 +89,10 @@ implicit val writes: Writes[Foo] = Variants.writes[Foo]("type")
 Add the following dependency to your project:
 
 ```scala
-libraryDependencies += "org.julienrf" %% "play-json-variants" % "1.0.0"
+libraryDependencies += "org.julienrf" %% "play-json-variants" % "1.0.1"
 ```
 
-The 1.0.0 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
+The 1.0.1 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
 
 # How Does It Work?
 
@@ -107,4 +107,5 @@ The `Variants.format[Foo]` is a Scala macro that takes as parameter the root typ
 
 # Changelog
 
+- v1.0.1: Remove unnecessary macro paradise dependency when Scala 2.11 (thanks to Kenji Yoshida)
 - v1.0.0: Support for `Reads`, `Writes` and `Format`
