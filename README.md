@@ -84,6 +84,12 @@ implicit val reads: Reads[Foo] = Variants.reads[Foo]("type")
 implicit val writes: Writes[Foo] = Variants.writes[Foo]("type")
 ```
 
+Also, you can use a function to transform the value of the discrimination field into valid class name. It's useful when you work with external web services.
+
+```scala
+implicit val reads: Reads[Foo] = Variants.reads[Foo]("type")(_.capitalize)
+```
+
 # Installation
 
 Add the following dependency to your project:
