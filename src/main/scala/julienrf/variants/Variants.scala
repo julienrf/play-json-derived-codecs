@@ -36,6 +36,14 @@ object Variants {
   def reads[A](discriminator: String): Reads[A] = macro Impl.readsDiscriminator[A]
 
   /**
+   * @param discriminator Name of the type discriminator field.
+   * @param transform Function to transform discriminator value into valid class name
+   * @tparam A Base type of case class hierarchy.
+   * @return A [[play.api.libs.json.Reads]] for the type hierarchy of `A`.
+   */
+  def reads[A](discriminator: String, transform: String => String): Reads[A] = macro Impl.readsDiscriminatorTransform[A]
+
+  /**
    * @tparam A The base type of a case class hierarchy.
    * @return A [[play.api.libs.json.Writes]] for the type hierarchy of `A`. It uses an additional field named `$variant`
    *         to discriminate between the possible subtypes of `A`.
@@ -52,6 +60,8 @@ object Variants {
   private object Impl {
 
     val defaultDiscriminator = "$variant"
+
+    val defaultTransform = (a: String) => a
 
     /**
      * Given the following definition of class hierarchy `Foo`:
@@ -98,7 +108,7 @@ object Variants {
       import c.universe._
       val (baseClass, variants) = baseAndVariants[A](c)
       val writes = writesTree(c)(baseClass, variants, discriminator)
-      val reads = readsTree(c)(baseClass, variants, discriminator)
+      val reads = readsTree(c)(baseClass, variants, discriminator, reify(defaultTransform))
       c.Expr[Format[A]](q"play.api.libs.json.Format[$baseClass]($reads, $writes)")
     }
 
@@ -107,9 +117,17 @@ object Variants {
       readsDiscriminator[A](c)(reify(defaultDiscriminator))
     }
 
-    def readsDiscriminator[A : c.WeakTypeTag](c: Context)(discriminator: c.Expr[String]): c.Expr[Reads[A]] = {
+    def readsDiscriminator[A : c.WeakTypeTag](c: Context)
+                                             (discriminator: c.Expr[String]): c.Expr[Reads[A]] = {
+      import c.universe._
       val (baseClass, variants) = baseAndVariants[A](c)
-      c.Expr[Reads[A]](readsTree(c)(baseClass, variants, discriminator))
+      c.Expr[Reads[A]](readsTree(c)(baseClass, variants, discriminator, reify(defaultTransform)))
+    }
+
+    def readsDiscriminatorTransform[A : c.WeakTypeTag](c: Context)
+                                                      (discriminator: c.Expr[String], transform: c.Expr[String => String]): c.Expr[Reads[A]] = {
+      val (baseClass, variants) = baseAndVariants[A](c)
+      c.Expr[Reads[A]](readsTree(c)(baseClass, variants, discriminator, transform))
     }
 
     def writes[A : c.WeakTypeTag](c: Context): c.Expr[Writes[A]] = {
@@ -153,7 +171,7 @@ object Variants {
       q"play.api.libs.json.Writes[$baseClass] { case ..$writesCases }"
     }
 
-    def readsTree(c: Context)(baseClass: c.universe.ClassSymbol, variants: Set[c.universe.ClassSymbol], discriminator: c.Expr[String]): c.Tree = {
+    def readsTree(c: Context)(baseClass: c.universe.ClassSymbol, variants: Set[c.universe.ClassSymbol], discriminator: c.Expr[String], transform: c.Expr[String => String]): c.Tree = {
       import c.universe._
       val readsCases = for (variant <- variants) yield {
         if (!variant.isModuleClass) {
@@ -164,7 +182,7 @@ object Variants {
       }
         q"""
            play.api.libs.json.Reads[$baseClass](json =>
-             (json \ $discriminator).validate[String].flatMap { case ..$readsCases }
+             (json \ $discriminator).validate[String].map($transform).flatMap { case ..$readsCases }
            )
          """
     }
