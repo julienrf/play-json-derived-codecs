@@ -87,7 +87,7 @@ implicit val writes: Writes[Foo] = Variants.writes[Foo]("type")
 Also, you can use a function to transform the value of the discrimination field into valid class name. It's useful when you work with external web services.
 
 ```scala
-implicit val reads: Reads[Foo] = Variants.reads[Foo]("type")(_.capitalize)
+implicit val reads: Reads[Foo] = Variants.reads[Foo]("type", (discriminator: String) => discriminator.capitalize)
 ```
 
 # Installation
