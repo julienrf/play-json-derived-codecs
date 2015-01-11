@@ -1,7 +1,7 @@
 package julienrf.variants
 
 import org.specs2.mutable.Specification
-import play.api.libs.json.{Json,Format}
+import play.api.libs.json.{Reads, Json, Format}
 
 object VariantsSpec extends Specification {
 
@@ -9,6 +9,9 @@ object VariantsSpec extends Specification {
   case class Bar(x: Int) extends Foo
   case class Baz(s: String) extends Foo
   case object Bah extends Foo
+
+  sealed trait Attachment
+  case class PhotoAttachment(photo: String) extends Attachment
 
   sealed trait Status
   case object ToDo extends Status
@@ -74,6 +77,18 @@ object VariantsSpec extends Specification {
       implicit val writes = Variants.writes[A]
       Json.toJson(B(42)) must equalTo (Json.obj("x" -> 42, "$variant" -> "B"))
       Json.toJson(C(0)) must equalTo (Json.obj("x" -> 0, "$variant" -> "C"))
+    }
+
+    "deserialize json with custom discriminator" in {
+      implicit val attachmentReads: Reads[Attachment] = Variants.reads[Attachment]("type", (s:String) => s.capitalize+"Attachment")
+
+      val photoJsonStr = """{
+                         "type":"photo",
+                         "photo":"bar"
+                       }"""
+
+      val photoJson = Json.parse(photoJsonStr)
+      photoJson.as[Attachment] must beAnInstanceOf[PhotoAttachment]
     }
   }
 
