@@ -80,14 +80,9 @@ object VariantsSpec extends Specification {
     }
 
     "deserialize json with custom discriminator" in {
-      implicit val attachmentReads: Reads[Attachment] = Variants.reads[Attachment]("type", (s:String) => s.capitalize+"Attachment")
+      implicit val attachmentReads: Reads[Attachment] = Variants.reads[Attachment]("type", (s: String) => s"${s.capitalize}Attachment")
 
-      val photoJsonStr = """{
-                         "type":"photo",
-                         "photo":"bar"
-                       }"""
-
-      val photoJson = Json.parse(photoJsonStr)
+      val photoJson = Json.obj("type" -> "photo", "photo" -> "bar")
       photoJson.as[Attachment] must beAnInstanceOf[PhotoAttachment]
     }
   }

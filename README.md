@@ -95,10 +95,10 @@ implicit val reads: Reads[Foo] = Variants.reads[Foo]("type")(_.capitalize)
 Add the following dependency to your project:
 
 ```scala
-libraryDependencies += "org.julienrf" %% "play-json-variants" % "1.0.1"
+libraryDependencies += "org.julienrf" %% "play-json-variants" % "1.1.0"
 ```
 
-The 1.0.1 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
+The 1.1.0 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
 
 # How Does It Work?
 
@@ -113,5 +113,6 @@ The `Variants.format[Foo]` is a Scala macro that takes as parameter the root typ
 
 # Changelog
 
-- v1.0.1: Remove unnecessary macro paradise dependency when Scala 2.11 (thanks to Kenji Yoshida)
-- v1.0.0: Support for `Reads`, `Writes` and `Format`
+- 1.1.0: Add support for an optional `transform` parameter (thanks to Nikita Melkozerov)
+- 1.0.1: Remove unnecessary macro paradise dependency when Scala 2.11 (thanks to Kenji Yoshida)
+- 1.0.0: Support for `Reads`, `Writes` and `Format`

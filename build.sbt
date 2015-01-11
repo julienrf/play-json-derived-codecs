@@ -2,7 +2,7 @@ organization := "org.julienrf"
 
 name := "play-json-variants"
 
-version := "1.0.1"
+version := "1.1.0"
 
 crossScalaVersions := Seq("2.10.4", "2.11.4")
 
