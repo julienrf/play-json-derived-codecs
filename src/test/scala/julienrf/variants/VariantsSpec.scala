@@ -1,7 +1,7 @@
 package julienrf.variants
 
 import org.specs2.mutable.Specification
-import play.api.libs.json.{Reads, Json, Format}
+import play.api.libs.json.{Reads, Json, Format, __}
 
 object VariantsSpec extends Specification {
 
@@ -59,7 +59,7 @@ object VariantsSpec extends Specification {
     }
 
     "Support customization of discriminator field name" in {
-      implicit val format = Variants.format[A]("type")
+      implicit val format = Variants.format[A]((__ \ "type").format[String])
       (Json.toJson(B(42)) \ "type").as[String] must equalTo ("B")
       (Json.toJson(C(0)) \ "type").as[String] must equalTo ("C")
       Json.obj("type" -> "B", "x" -> 0).as[A] must equalTo (B(0))
@@ -80,7 +80,8 @@ object VariantsSpec extends Specification {
     }
 
     "deserialize json with custom discriminator" in {
-      implicit val attachmentReads: Reads[Attachment] = Variants.reads[Attachment]("type", (s: String) => s"${s.capitalize}Attachment")
+      implicit val attachmentReads: Reads[Attachment] =
+        Variants.reads[Attachment]((__ \ "type").read[String].map(s => s"${s.capitalize}Attachment"))
 
       val photoJson = Json.obj("type" -> "photo", "photo" -> "bar")
       photoJson.as[Attachment] must beAnInstanceOf[PhotoAttachment]

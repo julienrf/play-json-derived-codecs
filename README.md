@@ -76,18 +76,18 @@ implicit val reads: Reads[Foo] = Variants.reads[Foo]
 implicit val writes: Writes[Foo] = Variants.writes[Foo]
 ```
 
-By default the field used to discriminate the target object’s type is named `$variant` but you can supply another name:
+By default the field used to discriminate the target object’s type is named `$variant` but you can define your own logic:
 
 ```scala
-implicit val format: Format[Foo] = Variants.format[Foo]("type")
-implicit val reads: Reads[Foo] = Variants.reads[Foo]("type")
-implicit val writes: Writes[Foo] = Variants.writes[Foo]("type")
+implicit val format: Format[Foo] = Variants.format[Foo]((__ \ "type").read[String])
+implicit val reads: Reads[Foo] = Variants.reads[Foo]((__ \ "type").read[String])
+implicit val writes: Writes[Foo] = Variants.writes[Foo]((__ \ "type").read[String])
 ```
 
-Also, you can use a function to transform the value of the discrimination field into valid class name. It's useful when you work with external web services.
+Or, you can transform the value of the JSON field into a valid class name:
 
 ```scala
-implicit val reads: Reads[Foo] = Variants.reads[Foo]("type", (discriminator: String) => discriminator.capitalize)
+implicit val reads: Reads[Foo] = Variants.reads[Foo]((__ \ "type").read[String].map(_.capitalize))
 ```
 
 # Installation
@@ -95,10 +95,10 @@ implicit val reads: Reads[Foo] = Variants.reads[Foo]("type", (discriminator: Str
 Add the following dependency to your project:
 
 ```scala
-libraryDependencies += "org.julienrf" %% "play-json-variants" % "1.1.0"
+libraryDependencies += "org.julienrf" %% "play-json-variants" % "2.0"
 ```
 
-The 1.1.0 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
+The 2.0 version is compatible with Play 2.3.x and with both Scala 2.10 and 2.11.
 
 # How Does It Work?
 
@@ -113,6 +113,7 @@ The `Variants.format[Foo]` is a Scala macro that takes as parameter the root typ
 
 # Changelog
 
+- 2.0: Generalize `transform` and `discriminator` parameters
 - 1.1.0: Add support for an optional `transform` parameter (thanks to Nikita Melkozerov)
 - 1.0.1: Remove unnecessary macro paradise dependency when Scala 2.11 (thanks to Kenji Yoshida)
 - 1.0.0: Support for `Reads`, `Writes` and `Format`

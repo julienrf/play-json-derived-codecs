@@ -2,14 +2,14 @@ organization := "org.julienrf"
 
 name := "play-json-variants"
 
-version := "1.1.0"
+enablePlugins(GitVersioning)
 
-crossScalaVersions := Seq("2.10.4", "2.11.4")
+crossScalaVersions := Seq("2.10.5", "2.11.7")
 
 libraryDependencies ++= (Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
   "org.specs2" %% "specs2" % "2.3.12" % "test",
-  "com.typesafe.play" %% "play-json" % "2.3.0"
+  "com.typesafe.play" %% "play-json" % "2.3.9"
 ) ++ (
   if (scalaVersion.value.startsWith("2.10")) Seq(
     "org.scalamacros" %% "quasiquotes" % "2.0.0",
