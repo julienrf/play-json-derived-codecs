@@ -79,9 +79,9 @@ implicit val writes: Writes[Foo] = Variants.writes[Foo]
 By default the field used to discriminate the target object’s type is named `$variant` but you can define your own logic:
 
 ```scala
-implicit val format: Format[Foo] = Variants.format[Foo]((__ \ "type").read[String])
+implicit val format: Format[Foo] = Variants.format[Foo]((__ \ "type").format[String])
 implicit val reads: Reads[Foo] = Variants.reads[Foo]((__ \ "type").read[String])
-implicit val writes: Writes[Foo] = Variants.writes[Foo]((__ \ "type").read[String])
+implicit val writes: Writes[Foo] = Variants.writes[Foo]((__ \ "type").write[String])
 ```
 
 Or, you can transform the value of the JSON field into a valid class name:
