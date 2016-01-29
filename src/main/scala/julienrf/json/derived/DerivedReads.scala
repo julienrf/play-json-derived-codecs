@@ -1,10 +1,12 @@
 package julienrf.json.derived
 
-import play.api.libs.json._
-import shapeless.labelled.{field, FieldType}
-import shapeless.{Witness, HList, HNil, Lazy, LabelledGeneric, Coproduct, CNil, ::, :+:, Inr, Inl}
+import play.api.libs.json.{Reads, __, JsError}
+import shapeless.labelled.{FieldType, field}
+import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness, Coproduct, :+:, Inr, Inl, CNil}
 
-trait DerivedReads[A] extends Reads[A]
+trait DerivedReads[A] {
+  def reads: Reads[A]
+}
 
 object DerivedReads extends DerivedReadsInstances
 
@@ -12,45 +14,39 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
 
   implicit def readsCNil: DerivedReads[CNil] =
     new DerivedReads[CNil] {
-      def reads(json: JsValue) = JsError("Unable to read this type")
+      val reads = Reads[CNil] { _ => JsError("Unable to read this type") }
     }
 
-  implicit def readsHNil: DerivedReads[HNil] =
+  implicit val readsHNil: DerivedReads[HNil] =
     new DerivedReads[HNil] {
-      def reads(json: JsValue) = JsSuccess(HNil)
+      val reads = Reads.pure[HNil](HNil)
     }
 
   implicit def readsCoProduct[K <: Symbol, L, R <: Coproduct](implicit
     typeName: Witness.Aux[K],
-    readL: Lazy[Reads[L]],
+    readL: Lazy[DerivedReads[L]],
     readR: Lazy[DerivedReads[R]]
-  ): DerivedReads[FieldType[K, L] :+: R] = new DerivedReads[FieldType[K, L] :+: R] {
-    def reads(json: JsValue) = {
-      val typeFieldReads = (__ \ typeName.value.name).read(readL.value)
-      typeFieldReads.reads(json).fold(
-        { errors => readR.value.reads(json).map { r => Inr(r) } },
-        { l => JsSuccess(Inl(field[K](l))) }
-      )
-    }
+  ): DerivedReads[FieldType[K, L] :+: R] =
+    new DerivedReads[FieldType[K, L] :+: R] {
+      val reads = {
+        (__ \ typeName.value.name).read(readL.value.reads).map[FieldType[K, L] :+: R] {
+          l => Inl(field[K](l))
+        }.orElse(readR.value.reads.map { r => Inr(r) })
+      }
   }
 
-  implicit def readsLabelledHList[K <: Symbol, H, T <: HList](implicit
+  implicit def readsLabelledHList[A, K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
     readH: Lazy[Reads[H]],
     readT: Lazy[DerivedReads[T]]
   ): DerivedReads[FieldType[K, H] :: T] =
     new DerivedReads[FieldType[K, H] :: T] {
-      def reads(json: JsValue) = {
-        val fieldReads = (__ \ fieldName.value.name).read(readH.value)
-        val hJsResult = fieldReads.reads(json)
-        val tJsResult = readT.value.reads(json)
+      val reads =
         for {
-          h <- hJsResult
-          t <- tJsResult
-        } yield (field[K](h) :: t)
-      }
+          h <- (__ \ fieldName.value.name).read(readH.value)
+          t <- readT.value.reads
+        } yield field[K](h) :: t
     }
-
 }
 
 trait DerivedReadsInstances1 {
@@ -60,7 +56,7 @@ trait DerivedReadsInstances1 {
     derivedReads: Lazy[DerivedReads[R]]
   ): DerivedReads[A] =
     new DerivedReads[A] {
-      def reads(json: JsValue): JsResult[A] = derivedReads.value.reads(json).map(gen.from)
+      val reads = derivedReads.value.reads.map(gen.from)
     }
 
 }
