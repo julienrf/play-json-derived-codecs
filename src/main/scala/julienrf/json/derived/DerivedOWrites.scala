@@ -1,8 +1,8 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{JsObject, Writes, Json, OWrites}
+import play.api.libs.json.{JsObject, Json, OWrites, Writes}
 import shapeless.labelled.FieldType
-import shapeless.{Inr, Inl, :+:, Coproduct, CNil, LabelledGeneric, ::, Lazy, Witness, HList, HNil}
+import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, LabelledGeneric, Lazy, Witness}
 
 trait DerivedOWrites[-A] {
   def owrites: OWrites[A]
@@ -23,7 +23,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
     owritesT: Lazy[DerivedOWrites[T]]
   ): DerivedOWrites[FieldType[K, H] :: T] =
     new DerivedOWrites[FieldType[K, H] :: T] {
-      val owrites =
+      def owrites =
         OWrites[FieldType[K, H] :: T] { case h :: t =>
           JsObject(Map(fieldName.value.name -> owritesH.value.writes(h)) ++ owritesT.value.owrites.writes(t).value)
         }
@@ -40,8 +40,8 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
     owritesR: Lazy[DerivedOWrites[R]]
   ): DerivedOWrites[FieldType[K, L] :+: R] =
     new DerivedOWrites[FieldType[K, L] :+: R] {
-      val owrites = OWrites[FieldType[K, L] :+: R] {
-        case Inl(l) => owritesL.value.owrites.writes(l)
+      def owrites = OWrites[FieldType[K, L] :+: R] {
+        case Inl(l) => Json.obj(typeName.value.name -> owritesL.value.owrites.writes(l))
         case Inr(r) => owritesR.value.owrites.writes(r)
       }
     }
@@ -55,7 +55,7 @@ trait DerivedOWritesInstances1 {
     derivedOWrites: Lazy[DerivedOWrites[R]]
   ): DerivedOWrites[A] =
     new DerivedOWrites[A] {
-      val owrites = OWrites.contravariantfunctorOWrites.contramap(derivedOWrites.value.owrites, gen.to)
+      def owrites = OWrites.contravariantfunctorOWrites.contramap(derivedOWrites.value.owrites, gen.to)
     }
 
 }

@@ -12,14 +12,9 @@ object DerivedReads extends DerivedReadsInstances
 
 trait DerivedReadsInstances extends DerivedReadsInstances1 {
 
-  implicit def readsCNil: DerivedReads[CNil] =
+  implicit val readsCNil: DerivedReads[CNil] =
     new DerivedReads[CNil] {
       val reads = Reads[CNil] { _ => JsError("Unable to read this type") }
-    }
-
-  implicit val readsHNil: DerivedReads[HNil] =
-    new DerivedReads[HNil] {
-      val reads = Reads.pure[HNil](HNil)
     }
 
   implicit def readsCoProduct[K <: Symbol, L, R <: Coproduct](implicit
@@ -28,12 +23,16 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
     readR: Lazy[DerivedReads[R]]
   ): DerivedReads[FieldType[K, L] :+: R] =
     new DerivedReads[FieldType[K, L] :+: R] {
-      val reads = {
-        (__ \ typeName.value.name).read(readL.value.reads).map[FieldType[K, L] :+: R] {
-          l => Inl(field[K](l))
-        }.orElse(readR.value.reads.map { r => Inr(r) })
-      }
+      def reads =
+        (__ \ typeName.value.name).read(readL.value.reads)
+          .map[FieldType[K, L] :+: R](l => Inl(field[K](l)))
+          .orElse(readR.value.reads.map { r => Inr(r) })
   }
+
+  implicit val readsHNil: DerivedReads[HNil] =
+    new DerivedReads[HNil] {
+      val reads = Reads.pure[HNil](HNil)
+    }
 
   implicit def readsLabelledHList[A, K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
@@ -41,7 +40,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
     readT: Lazy[DerivedReads[T]]
   ): DerivedReads[FieldType[K, H] :: T] =
     new DerivedReads[FieldType[K, H] :: T] {
-      val reads =
+      def reads =
         for {
           h <- (__ \ fieldName.value.name).read(readH.value)
           t <- readT.value.reads
@@ -56,7 +55,7 @@ trait DerivedReadsInstances1 {
     derivedReads: Lazy[DerivedReads[R]]
   ): DerivedReads[A] =
     new DerivedReads[A] {
-      val reads = derivedReads.value.reads.map(gen.from)
+      def reads = derivedReads.value.reads.map(gen.from)
     }
 
 }

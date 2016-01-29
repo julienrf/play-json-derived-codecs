@@ -1,7 +1,7 @@
 package julienrf.json.derived
 
-import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
 import play.api.libs.json.{OFormat, OWrites, Reads}
@@ -16,9 +16,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
       Arbitrary(for (s <- arbitrary[String]; i <- arbitrary[Int]) yield Foo(s, i))
 
     scenario("identity") {
-      check { (foo: Foo) =>
-        fooFormat.reads(fooFormat.writes(foo)).fold(_ => false, _ == foo)
-      }
+      identityLaw[Foo]
     }
   }
 
@@ -28,8 +26,19 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     case class Baz(s: String) extends Foo
     case object Bah extends Foo
 
-    implicit val fooReads: Reads[Foo] = reads[Foo]
-    implicit val fooWrites: OWrites[Foo] = owrites[Foo]
+    implicit val fooFormat: OFormat[Foo] = oformat[Foo]
+    implicit val fooArbitrary: Arbitrary[Foo] =
+      Arbitrary(
+        Gen.oneOf(
+          arbitrary[Int].map(Bar),
+          arbitrary[String].map(Baz),
+          Gen.const(Bah)
+        )
+      )
+
+    scenario("identity") {
+      identityLaw[Foo]
+    }
   }
 
   feature("recursive types") {
@@ -37,20 +46,27 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     case class Leaf(s: String) extends Tree
     case class Node(lhs: Tree, rhs: Tree) extends Tree
 
-    def atDepth(depth: Int): Gen[Tree] =
-      if (depth < 3) {
-        Gen.oneOf(
-          arbitrary[String].map(Leaf),
-          for {
-            lhs <- atDepth(depth + 1)
-            rhs <- atDepth(depth + 1)
-          } yield Node(lhs, rhs)
-        )
-      } else arbitrary[String].map(Leaf)
+    implicit lazy val treeFormat: OFormat[Tree] = oformat[Tree]
+    implicit val arbitraryTree: Arbitrary[Tree] = {
+      def atDepth(depth: Int): Gen[Tree] =
+        if (depth < 3) {
+          Gen.oneOf(
+            arbitrary[String].map(Leaf),
+            for {
+              lhs <- atDepth(depth + 1)
+              rhs <- atDepth(depth + 1)
+            } yield Node(lhs, rhs)
+          )
+        } else arbitrary[String].map(Leaf)
+      Arbitrary(atDepth(0))
+    }
 
-    implicit val arbitraryTree: Arbitrary[Tree] = Arbitrary(atDepth(0))
-
-    implicit lazy val treeReads: Reads[Tree] = reads[Tree]
-    implicit lazy val treeWrites: OWrites[Tree] = owrites[Tree]
+    scenario("identity") {
+      identityLaw[Tree]
+    }
   }
+
+  def identityLaw[A](implicit reads: Reads[A], owrites: OWrites[A], arbA: Arbitrary[A]): Unit =
+    check((a: A) => reads.reads(owrites.writes(a)).fold(_ => false, _ == a))
+
 }
