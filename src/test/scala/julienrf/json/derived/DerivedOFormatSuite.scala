@@ -3,15 +3,14 @@ package julienrf.json.derived
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
-import play.api.libs.json.{JsNumber, JsString, OWrites, Reads}
+import play.api.libs.json.{OFormat, OWrites}
 
 class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
   feature("product types") {
     case class Foo(s: String, i: Int)
 
-    implicit val fooReads: Reads[Foo] = reads[Foo]
-    implicit val fooWrites: OWrites[Foo] = owrites[Foo]
+    implicit val fooFormat: OFormat[Foo] = oformat[Foo]
     implicit val fooArbitrary: Arbitrary[Foo] =
       Arbitrary(
         for {
@@ -20,10 +19,9 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
         } yield Foo(s, i)
       )
 
-    scenario("OWrites") {
+    scenario("identity") {
       check { (foo: Foo) =>
-        val json = fooWrites.writes(foo)
-        json.value.get("s").contains(JsString(foo.s)) && json.value.get("i").contains(JsNumber(foo.i))
+        fooFormat.reads(fooFormat.writes(foo)).fold(_ => false, _ == foo)
       }
     }
   }
