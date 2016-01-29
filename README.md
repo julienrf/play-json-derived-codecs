@@ -29,6 +29,10 @@ The API is simple: the object `derived` has just three methods.
 - `owrites[A]`, derives a `OWrites[A]` ;
 - `oformat[A]`, derives a `OFormat[A]`.
 
+## Contributors
+
+See [here](https://github.com/julienrf/play-json-variants/graphs/contributors).
+
 ## Changelog
 
 - 3.0: Use [shapeless](http://github.com/milessabin/shapeless) for the derivation
