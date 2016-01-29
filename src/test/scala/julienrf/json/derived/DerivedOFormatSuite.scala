@@ -22,6 +22,18 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     }
   }
 
+  feature("tuple types") {
+    type Foo = (String, Int)
+
+    implicit val fooFormat: OFormat[Foo] = oformat[Foo]
+
+    scenario("identity") {
+      check { (foo: Foo) =>
+        fooFormat.reads(fooFormat.writes(foo)).fold(_ => false, _ == foo)
+      }
+    }
+  }
+
   feature("sum types") {
     sealed trait Foo
     case class Bar(x: Int) extends Foo
