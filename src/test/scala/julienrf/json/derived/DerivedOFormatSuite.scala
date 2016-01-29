@@ -3,15 +3,29 @@ package julienrf.json.derived
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
-import play.api.libs.json.{OWrites, Reads}
+import play.api.libs.json.{JsNumber, JsString, OWrites, Reads}
 
 class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
   feature("product types") {
     case class Foo(s: String, i: Int)
 
-    implicit val fooReads: Reads[Foo] = reads[Foo]
+//    implicit val fooReads: Reads[Foo] = reads[Foo]
     implicit val fooWrites: OWrites[Foo] = owrites[Foo]
+    implicit val fooArbitrary: Arbitrary[Foo] =
+      Arbitrary(
+        for {
+          s <- Arbitrary.arbitrary[String]
+          i <- Arbitrary.arbitrary[Int]
+        } yield Foo(s, i)
+      )
+
+    scenario("OWrites") {
+      check { (foo: Foo) =>
+        val json = fooWrites.writes(foo)
+        json.value.get("s").contains(JsString(foo.s)) && json.value.get("i").contains(JsNumber(foo.i))
+      }
+    }
   }
 
   feature("sum types") {
@@ -20,7 +34,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     case class Baz(s: String) extends Foo
     case object Bah extends Foo
 
-    implicit val fooReads: Reads[Foo] = reads[Foo]
+//    implicit val fooReads: Reads[Foo] = reads[Foo]
     implicit val fooWrites: OWrites[Foo] = owrites[Foo]
   }
 
@@ -42,7 +56,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
     implicit val arbitraryTree: Arbitrary[Tree] = Arbitrary(atDepth(0))
 
-    implicit val treeReads: Reads[Tree] = reads[Tree]
-    implicit val treeWrites: OWrites[Tree] = owrites[Tree]
+//    implicit val treeReads: Reads[Tree] = reads[Tree]
+//    implicit val treeWrites: OWrites[Tree] = owrites[Tree]
   }
 }

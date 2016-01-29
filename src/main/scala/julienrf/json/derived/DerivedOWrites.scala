@@ -36,12 +36,12 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
 
   implicit def owritesCoproduct[K <: Symbol, L, R <: Coproduct](implicit
     typeName: Witness.Aux[K],
-    owritesL: Lazy[OWrites[L]],
+    owritesL: Lazy[DerivedOWrites[L]],
     owritesR: Lazy[DerivedOWrites[R]]
   ): DerivedOWrites[FieldType[K, L] :+: R] =
     new DerivedOWrites[FieldType[K, L] :+: R] {
       val owrites = OWrites[FieldType[K, L] :+: R] {
-        case Inl(l) => owritesL.value.writes(l)
+        case Inl(l) => owritesL.value.owrites.writes(l)
         case Inr(r) => owritesR.value.owrites.writes(r)
       }
     }
