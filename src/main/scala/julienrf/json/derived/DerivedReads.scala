@@ -1,6 +1,6 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{Reads, __, JsError}
+import play.api.libs.json.{JsResult, JsValue, Reads, __, JsError}
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness, Coproduct, :+:, Inr, Inl, CNil}
 
@@ -24,7 +24,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
   ): DerivedReads[FieldType[K, L] :+: R] =
     new DerivedReads[FieldType[K, L] :+: R] {
       def reads =
-        (__ \ typeName.value.name).read(readL.value.reads)
+        (__ \ typeName.value.name).read(Reads[L] { json => readL.value.reads.reads(json) })
           .map[FieldType[K, L] :+: R](l => Inl(field[K](l)))
           .orElse(readR.value.reads.map { r => Inr(r) })
   }
