@@ -1,6 +1,7 @@
 package julienrf.json.derived
 
 import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
 import play.api.libs.json.{OFormat, OWrites}
@@ -12,12 +13,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
     implicit val fooFormat: OFormat[Foo] = oformat[Foo]
     implicit val fooArbitrary: Arbitrary[Foo] =
-      Arbitrary(
-        for {
-          s <- Arbitrary.arbitrary[String]
-          i <- Arbitrary.arbitrary[Int]
-        } yield Foo(s, i)
-      )
+      Arbitrary(for (s <- arbitrary[String]; i <- arbitrary[Int]) yield Foo(s, i))
 
     scenario("identity") {
       check { (foo: Foo) =>
@@ -44,13 +40,13 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     def atDepth(depth: Int): Gen[Tree] =
       if (depth < 3) {
         Gen.oneOf(
-          Arbitrary.arbitrary[String].map(Leaf),
+          arbitrary[String].map(Leaf),
           for {
             lhs <- atDepth(depth + 1)
             rhs <- atDepth(depth + 1)
           } yield Node(lhs, rhs)
         )
-      } else Arbitrary.arbitrary[String].map(Leaf)
+      } else arbitrary[String].map(Leaf)
 
     implicit val arbitraryTree: Arbitrary[Tree] = Arbitrary(atDepth(0))
 
