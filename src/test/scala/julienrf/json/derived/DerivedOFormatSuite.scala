@@ -51,6 +51,6 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     implicit val arbitraryTree: Arbitrary[Tree] = Arbitrary(atDepth(0))
 
 //    implicit val treeReads: Reads[Tree] = reads[Tree]
-//    implicit val treeWrites: OWrites[Tree] = owrites[Tree]
+    implicit lazy val treeWrites: OWrites[Tree] = owrites[Tree]
   }
 }
