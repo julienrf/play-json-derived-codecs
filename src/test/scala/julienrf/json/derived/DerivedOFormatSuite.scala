@@ -10,7 +10,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
   feature("product types") {
     case class Foo(s: String, i: Int)
 
-//    implicit val fooReads: Reads[Foo] = reads[Foo]
+    implicit val fooReads: Reads[Foo] = reads[Foo]
     implicit val fooWrites: OWrites[Foo] = owrites[Foo]
     implicit val fooArbitrary: Arbitrary[Foo] =
       Arbitrary(
