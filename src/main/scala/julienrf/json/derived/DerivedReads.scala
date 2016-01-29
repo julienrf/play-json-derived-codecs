@@ -1,6 +1,6 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{JsResult, JsValue, Reads, __, JsError}
+import play.api.libs.json.{Reads, __, JsError}
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness, Coproduct, :+:, Inr, Inl, CNil}
 
@@ -34,7 +34,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
       val reads = Reads.pure[HNil](HNil)
     }
 
-  implicit def readsLabelledHList[A, K <: Symbol, H, T <: HList](implicit
+  implicit def readsLabelledHList[K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
     readH: Lazy[Reads[H]],
     readT: Lazy[DerivedReads[T]]
