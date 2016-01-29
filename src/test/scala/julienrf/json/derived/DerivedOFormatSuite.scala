@@ -4,7 +4,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
-import play.api.libs.json.{OFormat, OWrites}
+import play.api.libs.json.{OFormat, OWrites, Reads}
 
 class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
@@ -28,7 +28,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     case class Baz(s: String) extends Foo
     case object Bah extends Foo
 
-//    implicit val fooReads: Reads[Foo] = reads[Foo]
+    implicit val fooReads: Reads[Foo] = reads[Foo]
     implicit val fooWrites: OWrites[Foo] = owrites[Foo]
   }
 
@@ -50,7 +50,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
     implicit val arbitraryTree: Arbitrary[Tree] = Arbitrary(atDepth(0))
 
-//    implicit val treeReads: Reads[Tree] = reads[Tree]
+    implicit lazy val treeReads: Reads[Tree] = reads[Tree]
     implicit lazy val treeWrites: OWrites[Tree] = owrites[Tree]
   }
 }
