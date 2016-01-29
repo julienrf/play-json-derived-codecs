@@ -1,23 +1,16 @@
 organization := "org.julienrf"
 
-name := "play-json-variants"
+name := "play-json-derived-codecs"
 
 enablePlugins(GitVersioning)
 
-crossScalaVersions := Seq("2.10.5", "2.11.7")
+scalaVersion := "2.11.7"
 
-libraryDependencies ++= (Seq(
-  "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  "org.specs2" %% "specs2" % "2.3.12" % "test",
-  "com.typesafe.play" %% "play-json" % "2.3.9"
-) ++ (
-  if (scalaVersion.value.startsWith("2.10")) Seq(
-    "org.scalamacros" %% "quasiquotes" % "2.0.0",
-    compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)
-  ) else Seq.empty
-))
-
-resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+libraryDependencies ++= Seq(
+  "com.chuusai" %% "shapeless" % "2.2.5",
+  "org.specs2" %% "specs2-scalacheck" % "3.7" % "test",
+  "com.typesafe.play" %% "play-json" % "2.4.6"
+)
 
 publishTo := {
   val nexus = "https://oss.sonatype.org"
@@ -26,7 +19,7 @@ publishTo := {
 }
 
 pomExtra := (
-  <url>http://github.com/julienrf/play-json-variants</url>
+  <url>http://github.com/julienrf/play-json-derived-codecs</url>
     <licenses>
       <license>
         <name>MIT License</name>
@@ -34,8 +27,8 @@ pomExtra := (
       </license>
     </licenses>
     <scm>
-      <url>git@github.com:julienrf/play-json-variants.git</url>
-      <connection>scm:git:git@github.com:julienrf/play-json-variants.git</connection>
+      <url>git@github.com:julienrf/play-json-derived-codecs.git</url>
+      <connection>scm:git:git@github.com:julienrf/play-json-derived-codecs.git</connection>
     </scm>
     <developers>
       <developer>
@@ -48,4 +41,19 @@ pomExtra := (
 
 useGpg := true
 
-scalacOptions ++= Seq("-feature", "-Xlint", "-deprecation"/*, "-Ymacro-debug-lite"*/)
+scalacOptions ++= Seq(
+  "-deprecation",
+  "-encoding", "UTF-8",
+  "-feature",
+  "-unchecked",
+  "-Yinline-warnings",
+  "-Yno-adapted-args",
+  "-Ywarn-dead-code",
+  "-Ywarn-numeric-widen",
+  "-Ywarn-unused-import",
+  "-Ywarn-value-discard",
+  "-Xlint",
+  "-Xfuture"
+)
+
+scalacOptions in Test += "-Yrangepos"
