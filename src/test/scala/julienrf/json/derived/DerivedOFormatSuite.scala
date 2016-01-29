@@ -3,7 +3,7 @@ package julienrf.json.derived
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
-import play.api.libs.json.Reads
+import play.api.libs.json.{OWrites, Reads}
 
 class DerivedOFormatSuite extends FeatureSpec with Checkers {
 
@@ -11,6 +11,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     case class Foo(s: String, i: Int)
 
     implicit val fooReads: Reads[Foo] = reads[Foo]
+    implicit val fooWrites: OWrites[Foo] = owrites[Foo]
   }
 
   feature("sum types") {
@@ -20,6 +21,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     case object Bah extends Foo
 
     implicit val fooReads: Reads[Foo] = reads[Foo]
+    implicit val fooWrites: OWrites[Foo] = owrites[Foo]
   }
 
   feature("recursive types") {
@@ -41,5 +43,6 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     implicit val arbitraryTree: Arbitrary[Tree] = Arbitrary(atDepth(0))
 
     implicit val treeReads: Reads[Tree] = reads[Tree]
+    implicit val treeWrites: OWrites[Tree] = owrites[Tree]
   }
 }

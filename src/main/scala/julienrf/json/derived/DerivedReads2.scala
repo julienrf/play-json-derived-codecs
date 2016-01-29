@@ -12,12 +12,12 @@ object DerivedReads2 extends DerivedReads2Instances
 
 trait DerivedReads2Instances extends DerivedReads2Instances1 {
 
-  implicit def decodeHNil[A]: DerivedReads2[HNil] =
+  implicit val readsHNil: DerivedReads2[HNil] =
     new DerivedReads2[HNil] {
       val reads = Reads.pure[HNil](HNil)
     }
 
-  implicit def decodeLabelledHList[A, K <: Symbol, H, T <: HList](implicit
+  implicit def readsLabelledHList[A, K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
     decodeH: Lazy[Reads[H]],
     decodeT: Lazy[DerivedReads2[T]]
