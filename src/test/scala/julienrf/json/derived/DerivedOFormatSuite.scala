@@ -26,9 +26,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     implicit val fooFormat: OFormat[Foo] = oformat[Foo]
 
     scenario("identity") {
-      check { (foo: Foo) =>
-        fooFormat.reads(fooFormat.writes(foo)).fold(_ => false, _ == foo)
-      }
+      identityLaw[Foo]
     }
   }
 
