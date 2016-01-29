@@ -42,10 +42,12 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
   ): DerivedReads[FieldType[K, H] :: T] =
     new DerivedReads[FieldType[K, H] :: T] {
       val reads =
-        for {
-          h <- (__ \ fieldName.value.name).read(readH.value)
-          t <- readT.value.reads
-        } yield field[K](h) :: t
+        Reads.applicative.apply(
+          ((__ \ fieldName.value.name).read(readH.value)).map {
+            h => { (t: T) => field[K](h) :: t }
+          },
+          readT.value.reads
+        )
     }
 }
 
