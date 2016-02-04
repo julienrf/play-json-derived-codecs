@@ -78,6 +78,14 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
         identityLaw[Tree]
       }
     }
+
+    scenario("polylmorphic types") {
+      case class Quux[A](value: A)
+      implicit val fooFormat: OFormat[Quux[Int]] = oformat[Quux[Int]]
+      implicit val arbitraryFoo: Arbitrary[Quux[Int]] =
+        Arbitrary(arbitrary[Int].map(new Quux(_)))
+      identityLaw[Quux[Int]]
+    }
   }
 
   def identityLaw[A](implicit reads: Reads[A], owrites: OWrites[A], arbA: Arbitrary[A]): Unit =
