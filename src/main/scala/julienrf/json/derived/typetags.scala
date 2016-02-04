@@ -38,7 +38,7 @@ object TypeTagReads {
   def flat(tagReads: Reads[String]): TypeTagReads =
     new TypeTagReads {
       def reads[A](typeName: String, reads: Reads[A]): Reads[A] =
-        tagReads.flatMap(_ => reads)
+        tagReads.filter(_ == typeName).flatMap(_ => reads)
     }
 
 }

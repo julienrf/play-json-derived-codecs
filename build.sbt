@@ -40,8 +40,6 @@ pomExtra := (
     </developers>
   )
 
-useGpg := true
-
 scalacOptions ++= Seq(
   "-deprecation",
   "-encoding", "UTF-8",

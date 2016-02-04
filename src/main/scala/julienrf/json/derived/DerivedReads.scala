@@ -14,7 +14,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
 
   implicit val readsCNil: DerivedReads[CNil] =
     new DerivedReads[CNil] {
-      def reads(tagReads: TypeTagReads) = Reads[CNil] { _ => JsError("Unable to read this type") }
+      def reads(tagReads: TypeTagReads) = Reads[CNil] { _ => JsError("error.sealed.trait") }
     }
 
   implicit def readsCoProduct[K <: Symbol, L, R <: Coproduct](implicit
