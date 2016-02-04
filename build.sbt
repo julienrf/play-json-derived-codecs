@@ -58,3 +58,13 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions in Test += "-Yrangepos"
+
+lazy val homePage = settingKey[File]("Path to the project home page")
+
+lazy val publishDoc = taskKey[Unit]("Publish the documentation")
+
+homePage := Path.userHome / "sites" / "julienrf.github.com"
+
+publishDoc := {
+  IO.copyDirectory((doc in Compile).value, homePage.value / "play-json-derived-codecs" / version.value / "api")
+}

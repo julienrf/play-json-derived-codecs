@@ -23,11 +23,63 @@ object User {
 }
 ~~~
 
-The API is simple: the object `derived` has just three methods.
+The [API](http://julienrf.github.io/play-json-derived-codecs/3.0/api) is simple: the object
+`julienrf.json.derived` has just three methods.
 
 - `reads[A]`, derives a `Reads[A]` ;
 - `owrites[A]`, derives a `OWrites[A]` ;
 - `oformat[A]`, derives a `OFormat[A]`.
+
+### Representation of Sum Types
+
+By default, sum types (types extending a sealed trait) are represented by a JSON object containing
+one field whose name is the name of the concrete type and whose value is the JSON object containing
+the value of the given type.
+
+For instance, consider the following data type:
+
+~~~ scala
+sealed trait Foo
+case class Bar(s: String, i: Int) extends Foo
+case object Baz extends Foo
+~~~
+
+The default JSON representation of `Bar("quux", 42)` is the following JSON object:
+
+~~~ javascript
+{
+  "Bar": {
+    "s": "quux",
+    "i": 42
+  }
+}
+~~~
+
+### Custom Representation of Sum Types
+
+The default representation of sum types may not fit all use cases. For instance, it is not very
+practical for enumerations. For this reason, the way sum types are represented is extensible.
+
+For instance, you might want to represent the `Bar("quux", 42)` value as the following JSON object:
+
+~~~ javascript
+{
+  "type": "Bar",
+  "s": "quux",
+  "i": 42
+}
+~~~
+
+Here, the type information is flattened with the `Bar` members.
+
+You can do so by using the methods in the `derived.flat` object:
+
+~~~ scala
+implicit val fooOWrites: OWrites[Foo] =
+  derived.flat.owrites((__ \ "type").read[String])[Foo]
+~~~
+
+In case you need even more control, you can still implement your own `TypeTagOWrites` and `TypeTagReads`.
 
 ## Contributors
 
