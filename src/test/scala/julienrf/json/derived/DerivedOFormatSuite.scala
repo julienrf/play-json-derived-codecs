@@ -14,13 +14,13 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
       case class Foo(s: String, i: Int)
       implicit val fooArbitrary: Arbitrary[Foo] =
         Arbitrary(for (s <- arbitrary[String]; i <- arbitrary[Int]) yield Foo(s, i))
-      implicit val fooFormat: OFormat[Foo] = oformat[Foo]
+      implicit val fooFormat: OFormat[Foo] = oformat
       identityLaw[Foo]
     }
 
     scenario("tuple type") {
       type Foo = (String, Int)
-      implicit val fooFormat: OFormat[Foo] = oformat[Foo]
+      implicit val fooFormat: OFormat[Foo] = oformat
 
       identityLaw[Foo]
     }
@@ -41,11 +41,11 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
         )
 
       {
-        implicit val fooFormat: OFormat[Foo] = oformat[Foo]
+        implicit val fooFormat: OFormat[Foo] = oformat
         identityLaw[Foo]
       }
       {
-        implicit val fooFormat: OFormat[Foo] = flat.oformat[Foo]((__ \ "type").format[String])
+        implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
         identityLaw[Foo]
       }
     }
@@ -70,18 +70,18 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
       }
 
       {
-        implicit lazy val treeFormat: OFormat[Tree] = oformat[Tree]
+        implicit lazy val treeFormat: OFormat[Tree] = oformat
         identityLaw[Tree]
       }
       {
-        implicit lazy val treeFormat: OFormat[Tree] = flat.oformat[Tree]((__ \ "$type").format[String])
+        implicit lazy val treeFormat: OFormat[Tree] = flat.oformat((__ \ "$type").format[String])
         identityLaw[Tree]
       }
     }
 
     scenario("polylmorphic types") {
       case class Quux[A](value: A)
-      implicit val fooFormat: OFormat[Quux[Int]] = oformat[Quux[Int]]
+      implicit val fooFormat: OFormat[Quux[Int]] = oformat
       implicit val arbitraryFoo: Arbitrary[Quux[Int]] =
         Arbitrary(arbitrary[Int].map(new Quux(_)))
       identityLaw[Quux[Int]]
@@ -95,7 +95,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     sealed trait Foo
     case class Bar(x: Int) extends Foo
     case class Baz(s: String) extends Foo
-    val fooFormat: OFormat[Foo] = oformat[Foo]
+    val fooFormat: OFormat[Foo] = oformat
     assert(fooFormat.writes(Bar(42)) == Json.obj("Bar" -> Json.obj("x" -> JsNumber(42))))
   }
 
@@ -103,7 +103,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     sealed trait Foo
     case class Bar(x: Int) extends Foo
     case class Baz(s: String) extends Foo
-    val fooFlatFormat: OFormat[Foo] = flat.oformat[Foo]((__ \ "type").format[String])
+    val fooFlatFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
     assert(fooFlatFormat.writes(Bar(42)) == Json.obj("type" -> "Bar", "x" -> JsNumber(42)))
   }
 

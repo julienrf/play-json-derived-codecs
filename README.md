@@ -20,7 +20,7 @@ import julienrf.json.derived
 case class User(name: String, age: Int)
 
 object User {
-  implicit val reads: Reads[User] = derived.reads[User]
+  implicit val reads: Reads[User] = derived.reads
 }
 ~~~
 
@@ -77,7 +77,7 @@ You can do so by using the methods in the `derived.flat` object:
 
 ~~~ scala
 implicit val fooOWrites: OWrites[Foo] =
-  derived.flat.owrites((__ \ "type").write[String])[Foo]
+  derived.flat.owrites((__ \ "type").write[String])
 ~~~
 
 In case you need even more control, you can still implement your own `TypeTagOWrites` and `TypeTagReads`.
