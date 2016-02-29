@@ -88,7 +88,7 @@ See [here](https://github.com/julienrf/play-json-variants/graphs/contributors).
 
 ## Changelog
 
-- 3.1: Update to Shapeless 2.3.1
+- 3.1: Update to Shapeless 2.3.0
 - 3.0: Use [shapeless](http://github.com/milessabin/shapeless) for the derivation
 - 2.0: Generalize `transform` and `discriminator` parameters
 - 1.1.0: Add support for an optional `transform` parameter (thanks to Nikita Melkozerov)
