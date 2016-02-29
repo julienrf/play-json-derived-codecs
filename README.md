@@ -7,7 +7,8 @@
 Compared to the built-in macros, this project brings support for:
 
 - sealed traits ;
-- recursive types.
+- recursive types ;
+- polymorphic types.
 
 The artifacts are built for Scala 2.11 and Play 2.4.
 
