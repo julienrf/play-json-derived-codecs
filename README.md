@@ -10,7 +10,7 @@ Compared to the built-in macros, this project brings support for:
 - recursive types ;
 - polymorphic types.
 
-The artifacts are built for Scala 2.11 and Play 2.4.
+The artifacts are built for Scala 2.11, Play 2.4 and Shapeless 2.3.0.
 
 ## Usage
 
@@ -88,6 +88,7 @@ See [here](https://github.com/julienrf/play-json-variants/graphs/contributors).
 
 ## Changelog
 
+- 3.1: Update to Shapeless 2.3.1
 - 3.0: Use [shapeless](http://github.com/milessabin/shapeless) for the derivation
 - 2.0: Generalize `transform` and `discriminator` parameters
 - 1.1.0: Add support for an optional `transform` parameter (thanks to Nikita Melkozerov)
