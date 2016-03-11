@@ -34,6 +34,25 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
       def reads(tagReads: TypeTagReads) = Reads.pure[HNil](HNil)
     }
 
+  implicit def readsLabelledHListOpt[K <: Symbol, H, T <: HList](implicit
+    fieldName: Witness.Aux[K],
+    readH: Lazy[Reads[H]],
+    readT: Lazy[DerivedReads[T]]
+  ): DerivedReads[FieldType[K, Option[H]] :: T] =
+    new DerivedReads[FieldType[K, Option[H]] :: T] {
+      def reads(tagReads: TypeTagReads) =
+        Reads.applicative.apply(
+          (__ \ fieldName.value.name).readNullable(readH.value).map {
+            h => { (t: T) => field[K](h) :: t }
+          },
+          readT.value.reads(tagReads)
+        )
+    }
+
+}
+
+trait DerivedReadsInstances1 extends DerivedReadsInstances2 {
+
   implicit def readsLabelledHList[K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
     readH: Lazy[Reads[H]],
@@ -48,9 +67,10 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
           readT.value.reads(tagReads)
         )
     }
+
 }
 
-trait DerivedReadsInstances1 {
+trait DerivedReadsInstances2 {
 
   implicit def readsGeneric[A, R](implicit
     gen: LabelledGeneric.Aux[A, R],

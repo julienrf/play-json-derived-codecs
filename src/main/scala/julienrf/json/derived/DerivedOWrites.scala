@@ -1,6 +1,6 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{JsObject, Json, OWrites, Writes}
+import play.api.libs.json.{JsValue, JsObject, Json, OWrites, Writes}
 import shapeless.labelled.FieldType
 import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, LabelledGeneric, Lazy, Witness}
 
@@ -17,15 +17,20 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
       def owrites(tagOwrites: TypeTagOWrites) = OWrites[HNil] { _ => Json.obj() }
     }
 
-  implicit def owritesLabelledHList[A, K <: Symbol, H, T <: HList](implicit
+  implicit def owritesLabelledHListOpt[A, K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
     owritesH: Lazy[Writes[H]],
     owritesT: Lazy[DerivedOWrites[T]]
-  ): DerivedOWrites[FieldType[K, H] :: T] =
-    new DerivedOWrites[FieldType[K, H] :: T] {
+  ): DerivedOWrites[FieldType[K, Option[H]] :: T] =
+    new DerivedOWrites[FieldType[K, Option[H]] :: T] {
       def owrites(tagOwrites: TypeTagOWrites) =
-        OWrites[FieldType[K, H] :: T] { case h :: t =>
-          JsObject(Map(fieldName.value.name -> owritesH.value.writes(h)) ++ owritesT.value.owrites(tagOwrites).writes(t).value)
+        OWrites[FieldType[K, Option[H]] :: T] { case maybeH :: t =>
+          val maybeField: Map[String, JsValue] =
+            (maybeH: Option[H]) match {
+              case Some(h) => Map(fieldName.value.name -> owritesH.value.writes(h))
+              case None => Map.empty
+            }
+          JsObject(maybeField ++ owritesT.value.owrites(tagOwrites).writes(t).value)
         }
     }
 
@@ -46,9 +51,26 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
       }
     }
 
+
 }
 
-trait DerivedOWritesInstances1 {
+trait DerivedOWritesInstances1 extends DerivedOWritesInstances2 {
+
+  implicit def owritesLabelledHList[A, K <: Symbol, H, T <: HList](implicit
+    fieldName: Witness.Aux[K],
+    owritesH: Lazy[Writes[H]],
+    owritesT: Lazy[DerivedOWrites[T]]
+  ): DerivedOWrites[FieldType[K, H] :: T] =
+    new DerivedOWrites[FieldType[K, H] :: T] {
+      def owrites(tagOwrites: TypeTagOWrites) =
+        OWrites[FieldType[K, H] :: T] { case h :: t =>
+          JsObject(Map(fieldName.value.name -> owritesH.value.writes(h)) ++ owritesT.value.owrites(tagOwrites).writes(t).value)
+        }
+    }
+
+}
+
+trait DerivedOWritesInstances2 {
 
   implicit def owritesGeneric[A, R](implicit
     gen: LabelledGeneric.Aux[A, R],

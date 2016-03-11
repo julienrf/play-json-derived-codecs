@@ -107,11 +107,35 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     assert(fooFlatFormat.writes(Bar(42)) == Json.obj("type" -> "Bar", "x" -> JsNumber(42)))
   }
 
-//  feature("case classes can have optional values") {
-//    case class Foo(s: Option[String], i: Int)
-//    implicit val fooFormat: OFormat[Foo] = oformat[Foo]
-//    implicit val arbitraryFoo: Arbitrary[Foo] =
-//      Arbitrary(for (s <- arbitrary[Option[String]]; i <- arbitrary[Int]) yield Foo(s, i))
-//  }
+  feature("case classes can have optional values") {
+    case class Foo(s: Option[String])
+    implicit val fooFormat: OFormat[Foo] = oformat
+    implicit val arbitraryFoo: Arbitrary[Foo] =
+      Arbitrary(for (s <- arbitrary[Option[String]]) yield Foo(s))
+
+    scenario("identity law") {
+      identityLaw[Foo]
+    }
+
+    scenario("Missing fields are successfully decoded as `None`") {
+      assert(fooFormat.reads(Json.obj()).asOpt.contains(Foo(None)))
+    }
+
+    scenario("Wrong fields are errors") {
+      assert(fooFormat.reads(Json.obj("s" -> 42)).asOpt.isEmpty)
+    }
+
+    scenario("Nested objects") {
+      case class Bar(foo: Foo)
+      implicit val barFormat: OFormat[Bar] = oformat
+      implicit val arbitraryBar: Arbitrary[Bar] =
+        Arbitrary(for (foo <- arbitrary[Foo]) yield Bar(foo))
+
+      identityLaw[Bar]
+      assert(barFormat.reads(Json.obj("foo" -> Json.obj())).asOpt.contains(Bar(Foo(None))))
+//      See https://github.com/playframework/playframework/issues/5863
+//      assert(barFormat.reads(Json.obj("foo" -> 42)).asOpt.isEmpty)
+    }
+  }
 
 }
