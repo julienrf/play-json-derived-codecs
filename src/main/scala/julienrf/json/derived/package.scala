@@ -25,4 +25,19 @@ package object derived {
 
   }
 
+  object own {
+
+    def reads[A](typeName: Reads[String], typeNameTransformer: String => String)(implicit derivedReads: Lazy[DerivedReads[A]]): Reads[A] =
+      derivedReads.value.reads(TypeTagReads.own(typeName, typeNameTransformer))
+
+    def owrites[A](typeName: OWrites[String], typeNameTransformer: String => String)(implicit derivedOWrites: Lazy[DerivedOWrites[A]]): OWrites[A] =
+      derivedOWrites.value.owrites(TypeTagOWrites.own(typeName, typeNameTransformer))
+
+    def oformat[A](typeName: OFormat[String], typeNameTransformer: String => String)(implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
+      OFormat(
+        derivedReads.value.reads(TypeTagReads.own(typeName, typeNameTransformer)),
+        derivedOWrites.value.owrites(TypeTagOWrites.own(typeName, typeNameTransformer))
+      )
+  }
+
 }
