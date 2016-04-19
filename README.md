@@ -10,7 +10,8 @@ Compared to the built-in macros, this project brings support for:
 - recursive types ;
 - polymorphic types.
 
-The artifacts are built for Scala 2.11, Play 2.4 and Shapeless 2.3.0.
+The artifacts are built for Scala 2.11, Play 2.5.x and Shapeless 2.3.0.
+For Play 2.4.x compatibility see version `3.2` and below.
 
 ## Usage
 
