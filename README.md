@@ -12,7 +12,7 @@ Compared to the built-in macros, this project brings support for:
 
 The artifacts are built for Scala 2.11, Play 2.5.x and Shapeless 2.3.0.
 
-For Play 2.4.x compatibility see version `[3.2](https://github.com/julienrf/play-json-derived-codecs/tree/v3.2)`.
+For Play 2.4.x compatibility see version [`3.2`](https://github.com/julienrf/play-json-derived-codecs/tree/v3.2).
 
 ## Usage
 
