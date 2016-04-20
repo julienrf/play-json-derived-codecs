@@ -26,7 +26,7 @@ object User {
 }
 ~~~
 
-The [API](http://julienrf.github.io/play-json-derived-codecs/3.0/api) is simple: the object
+The [API](http://julienrf.github.io/play-json-derived-codecs/3.3/api) is simple: the object
 `julienrf.json.derived` has just three methods.
 
 - `reads[A]`, derives a `Reads[A]` ;
