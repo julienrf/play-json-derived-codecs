@@ -11,7 +11,8 @@ Compared to the built-in macros, this project brings support for:
 - polymorphic types.
 
 The artifacts are built for Scala 2.11, Play 2.5.x and Shapeless 2.3.0.
-For Play 2.4.x compatibility see version `3.2` and below.
+
+For Play 2.4.x compatibility see version `[3.2](https://github.com/julienrf/play-json-derived-codecs/tree/v3.2)`.
 
 ## Usage
 
@@ -89,6 +90,7 @@ See [here](https://github.com/julienrf/play-json-variants/graphs/contributors).
 
 ## Changelog
 
+- 3.3: Play 2.5.x compatibility
 - 3.2: Optional fields support
 - 3.1: Update to Shapeless 2.3.0
 - 3.0: Use [shapeless](http://github.com/milessabin/shapeless) for the derivation
