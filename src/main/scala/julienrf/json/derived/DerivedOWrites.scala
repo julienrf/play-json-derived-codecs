@@ -19,6 +19,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
 
   implicit def owritesLabelledHListOpt[A, K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
+    adaptedName: FieldAdapter[K],
     owritesH: Lazy[Writes[H]],
     owritesT: Lazy[DerivedOWrites[T]]
   ): DerivedOWrites[FieldType[K, Option[H]] :: T] =
@@ -27,7 +28,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
         OWrites[FieldType[K, Option[H]] :: T] { case maybeH :: t =>
           val maybeField: Map[String, JsValue] =
             (maybeH: Option[H]) match {
-              case Some(h) => Map(fieldName.value.name -> owritesH.value.writes(h))
+              case Some(h) => Map(adaptedName.name -> owritesH.value.writes(h))
               case None => Map.empty
             }
           JsObject(maybeField ++ owritesT.value.owrites(tagOwrites).writes(t).value)
@@ -41,6 +42,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
 
   implicit def owritesCoproduct[K <: Symbol, L, R <: Coproduct](implicit
     typeName: Witness.Aux[K],
+    adaptedName: FieldAdapter[K],
     owritesL: Lazy[DerivedOWrites[L]],
     owritesR: Lazy[DerivedOWrites[R]]
   ): DerivedOWrites[FieldType[K, L] :+: R] =
@@ -58,13 +60,14 @@ trait DerivedOWritesInstances1 extends DerivedOWritesInstances2 {
 
   implicit def owritesLabelledHList[A, K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
+    adaptedName: FieldAdapter[K],
     owritesH: Lazy[Writes[H]],
     owritesT: Lazy[DerivedOWrites[T]]
   ): DerivedOWrites[FieldType[K, H] :: T] =
     new DerivedOWrites[FieldType[K, H] :: T] {
       def owrites(tagOwrites: TypeTagOWrites) =
         OWrites[FieldType[K, H] :: T] { case h :: t =>
-          JsObject(Map(fieldName.value.name -> owritesH.value.writes(h)) ++ owritesT.value.owrites(tagOwrites).writes(t).value)
+          JsObject(Map(adaptedName.name -> owritesH.value.writes(h)) ++ owritesT.value.owrites(tagOwrites).writes(t).value)
         }
     }
 

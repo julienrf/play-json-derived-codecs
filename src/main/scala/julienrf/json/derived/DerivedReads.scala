@@ -19,6 +19,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
 
   implicit def readsCoProduct[K <: Symbol, L, R <: Coproduct](implicit
     typeName: Witness.Aux[K],
+    adaptedName: FieldAdapter[K],
     readL: Lazy[DerivedReads[L]],
     readR: Lazy[DerivedReads[R]]
   ): DerivedReads[FieldType[K, L] :+: R] =
@@ -36,13 +37,14 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
 
   implicit def readsLabelledHListOpt[K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
+    adaptedName: FieldAdapter[K],
     readH: Lazy[Reads[H]],
     readT: Lazy[DerivedReads[T]]
   ): DerivedReads[FieldType[K, Option[H]] :: T] =
     new DerivedReads[FieldType[K, Option[H]] :: T] {
       def reads(tagReads: TypeTagReads) =
         Reads.applicative.apply(
-          (__ \ fieldName.value.name).readNullable(readH.value).map {
+          (__ \ adaptedName.name).readNullable(readH.value).map {
             h => { (t: T) => field[K](h) :: t }
           },
           readT.value.reads(tagReads)
@@ -55,13 +57,14 @@ trait DerivedReadsInstances1 extends DerivedReadsInstances2 {
 
   implicit def readsLabelledHList[K <: Symbol, H, T <: HList](implicit
     fieldName: Witness.Aux[K],
+    adaptedName: FieldAdapter[K],
     readH: Lazy[Reads[H]],
     readT: Lazy[DerivedReads[T]]
   ): DerivedReads[FieldType[K, H] :: T] =
     new DerivedReads[FieldType[K, H] :: T] {
       def reads(tagReads: TypeTagReads) =
         Reads.applicative.apply(
-          (__ \ fieldName.value.name).read(readH.value).map {
+          (__ \ adaptedName.name).read(readH.value).map {
             h => { (t: T) => field[K](h) :: t }
           },
           readT.value.reads(tagReads)
