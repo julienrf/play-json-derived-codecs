@@ -45,7 +45,8 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
         identityLaw[Foo]
       }
       {
-        implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
+        import FlatFormat._
+        implicit val fooFormat: OFormat[Foo] = oformat
         identityLaw[Foo]
       }
     }
@@ -74,7 +75,8 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
         identityLaw[Tree]
       }
       {
-        implicit lazy val treeFormat: OFormat[Tree] = flat.oformat((__ \ "$type").format[String])
+        import FlatFormat._
+        implicit lazy val treeFormat: OFormat[Tree] = oformat
         identityLaw[Tree]
       }
     }
@@ -100,10 +102,11 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
   }
 
   feature("sum types JSON representation can be customized") {
+    import FlatFormat._
     sealed trait Foo
     case class Bar(x: Int) extends Foo
     case class Baz(s: String) extends Foo
-    val fooFlatFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
+    val fooFlatFormat: OFormat[Foo] = oformat
     assert(fooFlatFormat.writes(Bar(42)) == Json.obj("type" -> "Bar", "x" -> JsNumber(42)))
   }
 
@@ -139,3 +142,8 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
   }
 
 }
+
+object FlatFormat extends FlatTypeTagOFormat {
+  val tagOFormat: OFormat[String] = (__ \ "type").format
+}
+

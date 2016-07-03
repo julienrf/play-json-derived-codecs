@@ -75,11 +75,21 @@ For instance, you might want to represent the `Bar("quux", 42)` value as the fol
 
 Here, the type information is flattened with the `Bar` members.
 
-You can do so by using the methods in the `derived.flat` object:
+You can do so by using a “FlatTypeTagOFormat”:
 
 ~~~ scala
-implicit val fooOWrites: OWrites[Foo] =
-  derived.flat.owrites((__ \ "type").write[String])
+import julienrf.json.derived.FlatTypeTagOFormat
+
+object FlatFormat extends FlatTypeTagOFormat {
+  val tagOFormat: OFormat[String] = (__ \ "type").format
+}
+~~~
+
+And then:
+
+~~~ scala
+import FlatFormat._
+implicit val fooOWrites: OWrites[Foo] = derived.oformat
 ~~~
 
 In case you need even more control, you can still implement your own `TypeTagOWrites` and `TypeTagReads`.

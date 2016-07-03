@@ -1,44 +1,67 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{Reads, Json, OWrites, __}
+import play.api.libs.json.{Json, OFormat, OWrites, Reads, __}
 
 trait TypeTagOWrites {
   def owrites[A](typeName: String, owrites: OWrites[A]): OWrites[A]
 }
 
-object TypeTagOWrites {
+object TypeTagOWrites extends NestedTypeTagOWrites
 
-  val nested: TypeTagOWrites =
+trait NestedTypeTagOWrites {
+
+  implicit val nestedTypeTagOWrites: TypeTagOWrites =
     new TypeTagOWrites {
       def owrites[A](typeName: String, owrites: OWrites[A]): OWrites[A] =
         OWrites[A](a => Json.obj(typeName -> owrites.writes(a)))
     }
 
-  def flat(tagOwrites: OWrites[String]): TypeTagOWrites =
+}
+
+trait FlatTypeTagOWrites {
+
+  val tagOWrites: OWrites[String]
+
+  implicit lazy val flatTypeTagOWrites: TypeTagOWrites =
     new TypeTagOWrites {
       def owrites[A](typeName: String, owrites: OWrites[A]): OWrites[A] =
-        OWrites[A](a => tagOwrites.writes(typeName) ++ owrites.writes(a))
+        OWrites[A](a => tagOWrites.writes(typeName) ++ owrites.writes(a))
     }
 
-
 }
+
 
 trait TypeTagReads {
   def reads[A](typeName: String, reads: Reads[A]): Reads[A]
 }
 
-object TypeTagReads {
+object TypeTagReads extends NestedTypeTagReads
 
-  val nested: TypeTagReads =
+trait NestedTypeTagReads {
+  implicit val nestedTypeTagReads: TypeTagReads =
     new TypeTagReads {
       def reads[A](typeName: String, reads: Reads[A]): Reads[A] =
         (__ \ typeName).read(reads)
     }
+}
 
-  def flat(tagReads: Reads[String]): TypeTagReads =
+trait FlatTypeTagReads {
+
+  val tagReads: Reads[String]
+
+  implicit lazy val flatTypeTagReads: TypeTagReads =
     new TypeTagReads {
       def reads[A](typeName: String, reads: Reads[A]): Reads[A] =
         tagReads.filter(_ == typeName).flatMap(_ => reads)
     }
+}
+
+trait FlatTypeTagOFormat extends FlatTypeTagReads with FlatTypeTagOWrites {
+
+  val tagOFormat: OFormat[String]
+
+  final lazy val tagReads = tagOFormat
+
+  final lazy val tagOWrites = tagOFormat
 
 }
