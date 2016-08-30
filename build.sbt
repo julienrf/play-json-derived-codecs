@@ -19,26 +19,25 @@ publishTo := {
   else Some("releases" at s"$nexus/service/local/staging/deploy/maven2")
 }
 
-pomExtra := (
-  <url>http://github.com/julienrf/play-json-derived-codecs</url>
-    <licenses>
-      <license>
-        <name>MIT License</name>
-        <url>http://opensource.org/licenses/mit-license.php</url>
-      </license>
-    </licenses>
-    <scm>
-      <url>git@github.com:julienrf/play-json-derived-codecs.git</url>
-      <connection>scm:git:git@github.com:julienrf/play-json-derived-codecs.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>julienrf</id>
-        <name>Julien Richard-Foy</name>
-        <url>http://julien.richard-foy.fr</url>
-      </developer>
-    </developers>
+pomExtra :=
+  <developers>
+    <developer>
+      <id>julienrf</id>
+      <name>Julien Richard-Foy</name>
+      <url>http://julien.richard-foy.fr</url>
+    </developer>
+  </developers>
+
+homepage := Some(url(s"https://github.com/julienrf/${name.value}"))
+
+licenses := Seq("MIT License" -> url("http://opensource.org/licenses/mit-license.php"))
+
+scmInfo := Some(
+  ScmInfo(
+    url(s"https://github.com/julienrf/${name.value}"),
+    s"scm:git:git@github.com:julienrf/${name.value}.git"
   )
+)
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -56,13 +55,3 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions in Test += "-Yrangepos"
-
-lazy val homePage = settingKey[File]("Path to the project home page")
-
-lazy val publishDoc = taskKey[Unit]("Publish the documentation")
-
-homePage := Path.userHome / "sites" / "julienrf.github.com"
-
-publishDoc := {
-  IO.copyDirectory((doc in Compile).value, homePage.value / "play-json-derived-codecs" / version.value / "api")
-}
