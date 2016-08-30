@@ -1,6 +1,6 @@
 (Note: this project has been renamed from [play-json-variants](https://github.com/julienrf/play-json-variants/tree/v2.0) to `play-json-derived-codecs`)
 
-# Play JSON Derived Codecs [![Maven Central](https://img.shields.io/maven-central/v/org.julienrf/play-json-derived-codecs_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/org.julienrf/play-json-derived-codecs_2.11)
+# Play JSON Derived Codecs [![](https://index.scala-lang.org/julienrf/play-json-derived-codecs/play-json-derived-codecs/latest.svg)](https://index.scala-lang.org/julienrf/play-json-derived-codecs)
 
 `Reads`, `OWrites` and `OFormat` derivation for algebraic data types (sealed traits and case classes, possibly recursive), powered by [shapeless](http://github.com/milessabin/shapeless).
 
@@ -26,7 +26,7 @@ object User {
 }
 ~~~
 
-The [API](http://julienrf.github.io/play-json-derived-codecs/3.3/api) is simple: the object
+The [API](https://www.javadoc.io/doc/org.julienrf/play-json-derived-codecs_2.11/3.3) is simple: the object
 `julienrf.json.derived` has just three methods.
 
 - `reads[A]`, derives a `Reads[A]` ;
@@ -90,11 +90,4 @@ See [here](https://github.com/julienrf/play-json-variants/graphs/contributors).
 
 ## Changelog
 
-- 3.3: Play 2.5.x compatibility
-- 3.2: Optional fields support
-- 3.1: Update to Shapeless 2.3.0
-- 3.0: Use [shapeless](http://github.com/milessabin/shapeless) for the derivation
-- 2.0: Generalize `transform` and `discriminator` parameters
-- 1.1.0: Add support for an optional `transform` parameter (thanks to Nikita Melkozerov)
-- 1.0.1: Remove unnecessary macro paradise dependency when Scala 2.11 (thanks to Kenji Yoshida)
-- 1.0.0: Support for `Reads`, `Writes` and `Format`
+See [here](https://github.com/julienrf/play-json-derived-codecs/releases).
