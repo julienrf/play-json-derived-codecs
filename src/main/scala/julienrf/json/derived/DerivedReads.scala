@@ -61,7 +61,7 @@ trait DerivedReadsInstances1 extends DerivedReadsInstances2 {
     readT: Lazy[DerivedReads[T]]
   ): DerivedReads[FieldType[K, H] :: T] =
     new DerivedReads[FieldType[K, H] :: T] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter): Reads[::[FieldType[K, H], T]] =
+      def reads(tagReads: TypeTagReads, adapter: Adapter): Reads[FieldType[K, H] :: T] =
         Reads.applicative.apply(
           (__ \ adapter(fieldName.value.name)).read(readH.value).map {
             h => { (t: T) => field[K](h) :: t }
