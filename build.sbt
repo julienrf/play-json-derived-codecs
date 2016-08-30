@@ -7,7 +7,7 @@ enablePlugins(GitVersioning)
 scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
-  "com.chuusai" %% "shapeless" % "2.3.0",
+  "com.chuusai" %% "shapeless" % "2.3.2",
   "org.scalatest" %% "scalatest" % "2.2.6" % Test,
   "org.scalacheck" %% "scalacheck" % "1.12.5" % Test,
   "com.typesafe.play" %% "play-json" % "2.5.2"
