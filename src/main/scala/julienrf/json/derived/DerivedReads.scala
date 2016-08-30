@@ -23,7 +23,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
     readR: Lazy[DerivedReads[R]]
   ): DerivedReads[FieldType[K, L] :+: R] =
     new DerivedReads[FieldType[K, L] :+: R] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter) ={
+      def reads(tagReads: TypeTagReads, adapter: Adapter) = {
         lazy val derivedReadL = readL.value.reads(tagReads, adapter)
         tagReads.reads(typeName.value.name, Reads[L](json => derivedReadL.reads(json)))
           .map[FieldType[K, L] :+: R](l => {Inl(field[K](l))})

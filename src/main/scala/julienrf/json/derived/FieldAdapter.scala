@@ -3,15 +3,13 @@ package julienrf.json.derived
 trait Adapter extends (String => String)
 
 object Adapter {
-  private def toSnakeCase(s: String): String =
-    s.foldLeft(new StringBuilder) {
-      case (s, c) if Character.isUpperCase(c) && s.nonEmpty => s append "_" append (Character toLowerCase c)
-      case (s, c) => s append c
-    }.toString
 
   val snakeCase = Adapter {
-    (v1: String) => {
-      toSnakeCase(v1)
+    (s: String) => {
+      s.foldLeft(new StringBuilder) {
+        case (s, c) if Character.isUpperCase(c) && s.nonEmpty => s append "_" append (Character toLowerCase c)
+        case (s, c) => s append c
+      }.toString
     }
   }
 
