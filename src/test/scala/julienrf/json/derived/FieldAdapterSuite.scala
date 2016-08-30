@@ -18,27 +18,6 @@ class FieldAdapterSuite extends FeatureSpec with Checkers {
       jsonIdentityLaw[Foo]
     }
 
-
-    scenario("sum types") {
-      sealed trait Foo
-      case class Bar(xC: Int) extends Foo
-      case class Baz(sC: String) extends Foo
-      case object Bah extends Foo
-
-      implicit val fooArbitrary: Arbitrary[(Foo, JsValue)] =
-        Arbitrary(
-          Gen.oneOf(
-            arbitrary[Int].map(i => (Bar(i), Json.obj("xC" -> i, "type" -> "Bar"))),
-            Gen.alphaStr.map(s => (Baz(s), Json.obj("sC" -> s, "type" -> "Baz"))),
-            Gen.const((Bah, Json.obj("type" -> "Bah"))
-            )
-          ))
-
-      implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
-      jsonIdentityLaw[Foo]
-
-    }
-
   }
 
   feature("customize the casing for field names") {
