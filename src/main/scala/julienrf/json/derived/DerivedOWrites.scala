@@ -4,7 +4,14 @@ import play.api.libs.json.{JsValue, JsObject, Json, OWrites, Writes}
 import shapeless.labelled.FieldType
 import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, LabelledGeneric, Lazy, Witness}
 
+/**
+  * Derives an `OWrites[A]`
+  */
 trait DerivedOWrites[-A] {
+  /**
+    * @param tagOwrites The strategy to use to serialize sum types
+    * @return The derived `OWrites[A]`
+    */
   def owrites(tagOwrites: TypeTagOWrites): OWrites[A]
 }
 

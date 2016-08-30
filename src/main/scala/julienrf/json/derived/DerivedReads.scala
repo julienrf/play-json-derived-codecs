@@ -4,7 +4,14 @@ import play.api.libs.json.{Reads, __, JsError}
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness, Coproduct, :+:, Inr, Inl, CNil}
 
+/**
+  * Derives a `Reads[A]`
+  */
 trait DerivedReads[A] {
+  /**
+    * @param tagReads The strategy to use to deserialize sum types
+    * @return The derived `Reads[A]`
+    */
   def reads(tagReads: TypeTagReads): Reads[A]
 }
 
