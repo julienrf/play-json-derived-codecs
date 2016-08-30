@@ -17,7 +17,7 @@ object Adapter {
 
   val identity = Adapter(s => s)
 
-  implicit val default = identity
+  val default = identity
 
   def apply(f: (String => String)): Adapter = new Adapter {
     override def apply(v1: String): String = f(v1)
