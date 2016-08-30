@@ -139,10 +139,4 @@ class FieldAdapterSuite extends FeatureSpec with Checkers {
       reads.reads(a._2).fold(_ => false, r => r == a._1 && owrites.writes(r) == a._2)
     })
 
-  def identityLaw[A](implicit reads: Reads[A], owrites: OWrites[A], arbA: Arbitrary[A]): Unit =
-    check((a: A) => {
-      reads.reads(owrites.writes(a)).fold(_ => false, _ == a)
-    })
-
-
 }
