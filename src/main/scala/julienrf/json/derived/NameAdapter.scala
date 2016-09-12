@@ -18,8 +18,6 @@ object NameAdapter {
 
   val identity = NameAdapter(s => s)
 
-  val default = identity
-
   def apply(f: (String => String)): NameAdapter = new NameAdapter {
     override def apply(v1: String): String = f(v1)
   }
