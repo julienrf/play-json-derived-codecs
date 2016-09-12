@@ -5,7 +5,7 @@ import shapeless.labelled.{FieldType, field}
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness, Coproduct, :+:, Inr, Inl, CNil}
 
 trait DerivedReads[A] {
-  def reads(tagReads: TypeTagReads, adapter: Adapter): Reads[A]
+  def reads(tagReads: TypeTagReads, adapter: NameAdapter): Reads[A]
 }
 
 object DerivedReads extends DerivedReadsInstances
@@ -14,7 +14,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
 
   implicit val readsCNil: DerivedReads[CNil] =
     new DerivedReads[CNil] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter) = Reads[CNil] { _ => JsError("error.sealed.trait") }
+      def reads(tagReads: TypeTagReads, adapter: NameAdapter) = Reads[CNil] { _ => JsError("error.sealed.trait") }
     }
 
   implicit def readsCoProduct[K <: Symbol, L, R <: Coproduct](implicit
@@ -23,7 +23,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
     readR: Lazy[DerivedReads[R]]
   ): DerivedReads[FieldType[K, L] :+: R] =
     new DerivedReads[FieldType[K, L] :+: R] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter) = {
+      def reads(tagReads: TypeTagReads, adapter: NameAdapter) = {
         lazy val derivedReadL = readL.value.reads(tagReads, adapter)
         tagReads.reads(typeName.value.name, Reads[L](json => derivedReadL.reads(json)))
           .map[FieldType[K, L] :+: R](l => {Inl(field[K](l))})
@@ -33,7 +33,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
 
   implicit val readsHNil: DerivedReads[HNil] =
     new DerivedReads[HNil] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter) = Reads.pure[HNil](HNil)
+      def reads(tagReads: TypeTagReads, adapter: NameAdapter) = Reads.pure[HNil](HNil)
     }
 
   implicit def readsLabelledHListOpt[K <: Symbol, H, T <: HList](implicit
@@ -42,7 +42,7 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
     readT: Lazy[DerivedReads[T]]
   ): DerivedReads[FieldType[K, Option[H]] :: T] =
     new DerivedReads[FieldType[K, Option[H]] :: T] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter) =
+      def reads(tagReads: TypeTagReads, adapter: NameAdapter) =
         Reads.applicative.apply(
           (__ \ adapter(fieldName.value.name)).readNullable(readH.value).map {
             h => { (t: T) => field[K](h) :: t }
@@ -61,7 +61,7 @@ trait DerivedReadsInstances1 extends DerivedReadsInstances2 {
     readT: Lazy[DerivedReads[T]]
   ): DerivedReads[FieldType[K, H] :: T] =
     new DerivedReads[FieldType[K, H] :: T] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter): Reads[FieldType[K, H] :: T] =
+      def reads(tagReads: TypeTagReads, adapter: NameAdapter): Reads[FieldType[K, H] :: T] =
         Reads.applicative.apply(
           (__ \ adapter(fieldName.value.name)).read(readH.value).map {
             h => { (t: T) => field[K](h) :: t }
@@ -79,7 +79,7 @@ trait DerivedReadsInstances2 {
     derivedReads: Lazy[DerivedReads[R]]
   ): DerivedReads[A] =
     new DerivedReads[A] {
-      def reads(tagReads: TypeTagReads, adapter: Adapter) = derivedReads.value.reads(tagReads, adapter).map(gen.from)
+      def reads(tagReads: TypeTagReads, adapter: NameAdapter) = derivedReads.value.reads(tagReads, adapter).map(gen.from)
     }
 
 }

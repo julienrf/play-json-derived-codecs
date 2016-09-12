@@ -5,7 +5,7 @@ import shapeless.labelled.FieldType
 import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, LabelledGeneric, Lazy, Witness}
 
 trait DerivedOWrites[-A] {
-  def owrites(tagOwrites: TypeTagOWrites, adapter: Adapter): OWrites[A]
+  def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter): OWrites[A]
 }
 
 object DerivedOWrites extends DerivedOWritesInstances
@@ -14,7 +14,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
 
   implicit val owritesHNil: DerivedOWrites[HNil] =
     new DerivedOWrites[HNil] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: Adapter) = OWrites[HNil] { _ => Json.obj() }
+      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = OWrites[HNil] { _ => Json.obj() }
     }
 
   implicit def owritesLabelledHListOpt[A, K <: Symbol, H, T <: HList](implicit
@@ -23,7 +23,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
     owritesT: Lazy[DerivedOWrites[T]]
   ): DerivedOWrites[FieldType[K, Option[H]] :: T] =
     new DerivedOWrites[FieldType[K, Option[H]] :: T] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: Adapter) = {
+      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = {
         val adaptedName = adapter(fieldName.value.name)
         val derivedOwriteT = owritesT.value.owrites(tagOwrites, adapter)
         OWrites[FieldType[K, Option[H]] :: T] { case maybeH :: t =>
@@ -39,7 +39,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
 
   implicit val owritesCNil: DerivedOWrites[CNil] =
     new DerivedOWrites[CNil] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: Adapter): OWrites[CNil] = OWrites {
+      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter): OWrites[CNil] = OWrites {
         case _ => sys.error("No JSON representation of CNil")
       }
     }
@@ -50,7 +50,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
     owritesR: Lazy[DerivedOWrites[R]]
   ): DerivedOWrites[FieldType[K, L] :+: R] =
     new DerivedOWrites[FieldType[K, L] :+: R] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: Adapter) = {
+      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = {
         val derivedOwriteL = owritesL.value.owrites(tagOwrites, adapter)
         val derivedOwriteR = owritesR.value.owrites(tagOwrites, adapter)
         OWrites[FieldType[K, L] :+: R] {
@@ -71,7 +71,7 @@ trait DerivedOWritesInstances1 extends DerivedOWritesInstances2 {
     owritesT: Lazy[DerivedOWrites[T]]
   ): DerivedOWrites[FieldType[K, H] :: T] =
     new DerivedOWrites[FieldType[K, H] :: T] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: Adapter) = {
+      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = {
         val adaptedName = adapter(fieldName.value.name)
         val derivedOwritesT = owritesT.value.owrites(tagOwrites, adapter)
         OWrites[FieldType[K, H] :: T] { case h :: t =>
@@ -89,7 +89,7 @@ trait DerivedOWritesInstances2 {
     derivedOWrites: Lazy[DerivedOWrites[R]]
   ): DerivedOWrites[A] =
     new DerivedOWrites[A] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: Adapter) =
+      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) =
         OWrites.contravariantfunctorOWrites.contramap(derivedOWrites.value.owrites(tagOwrites, adapter), gen.to)
     }
 

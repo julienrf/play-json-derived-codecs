@@ -6,7 +6,7 @@ import org.scalatest.FeatureSpec
 import org.scalatest.prop.Checkers
 import play.api.libs.json._
 
-class FieldAdapterSuite extends FeatureSpec with Checkers {
+class NameAdapterSuite extends FeatureSpec with Checkers {
 
   feature("use camelCase as the default casing for field names") {
 
@@ -119,7 +119,7 @@ class FieldAdapterSuite extends FeatureSpec with Checkers {
 
   }
 
-  def snakeAdapter(max:Int = 2) = new Adapter {
+  def snakeAdapter(max:Int = 2) = new NameAdapter {
     var nameMap = Map[String, Int]()
 
     def increment(v1: String) = this.synchronized {
@@ -129,7 +129,7 @@ class FieldAdapterSuite extends FeatureSpec with Checkers {
 
     override def apply(v1: String): String = {
       increment(v1)
-      Adapter.snakeCase(v1)
+      NameAdapter.snakeCase(v1)
     }
   }
 

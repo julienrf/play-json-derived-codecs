@@ -1,10 +1,10 @@
 package julienrf.json.derived
 
-trait Adapter extends (String => String)
+trait NameAdapter extends (String => String)
 
-object Adapter {
+object NameAdapter {
 
-  val snakeCase = Adapter {
+  val snakeCase = NameAdapter {
     (s: String) => {
       s.foldLeft(new StringBuilder) {
         case (s, c) if Character.isUpperCase(c) && s.nonEmpty => s append "_" append (Character toLowerCase c)
@@ -13,11 +13,11 @@ object Adapter {
     }
   }
 
-  val identity = Adapter(s => s)
+  val identity = NameAdapter(s => s)
 
   val default = identity
 
-  def apply(f: (String => String)): Adapter = new Adapter {
+  def apply(f: (String => String)): NameAdapter = new NameAdapter {
     override def apply(v1: String): String = f(v1)
   }
 
