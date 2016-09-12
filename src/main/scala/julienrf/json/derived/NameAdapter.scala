@@ -4,12 +4,15 @@ trait NameAdapter extends (String => String)
 
 object NameAdapter {
 
-  val snakeCase = NameAdapter {
-    (s: String) => {
-      s.foldLeft(new StringBuilder) {
-        case (s, c) if Character.isUpperCase(c) && s.nonEmpty => s append "_" append (Character toLowerCase c)
-        case (s, c) => s append c
-      }.toString
+  val snakeCase = NameAdapter { (s: String) =>
+    {
+      val builder = new StringBuilder
+      s foreach {
+        case c if Character.isUpperCase(c) && builder.nonEmpty =>
+          builder append "_" append (Character toLowerCase c)
+        case c => builder append c
+      }
+      builder.toString
     }
   }
 
