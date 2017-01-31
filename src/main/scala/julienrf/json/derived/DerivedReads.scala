@@ -33,9 +33,10 @@ trait DerivedReadsInstances extends DerivedReadsInstances1 {
     new DerivedReads[FieldType[K, L] :+: R] {
       def reads(tagReads: TypeTagReads, adapter: NameAdapter) = {
         lazy val derivedReadL = readL.value.reads(tagReads, adapter)
-        tagReads.reads(typeName.value.name, Reads[L](json => derivedReadL.reads(json)))
-          .map[FieldType[K, L] :+: R](l => {Inl(field[K](l))})
-          .orElse(readR.value.reads(tagReads, adapter).map(r => Inr(r)))
+        Reads.alternative.|(
+          tagReads.reads(typeName.value.name, Reads[L](json => derivedReadL.reads(json)))
+            .map[FieldType[K, L] :+: R](l => {Inl(field[K](l))}),
+          readR.value.reads(tagReads, adapter).map(r => Inr(r)))
       }
   }
 
