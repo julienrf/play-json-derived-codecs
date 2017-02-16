@@ -1,6 +1,6 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{Reads, Json, OWrites, __}
+import play.api.libs.json._
 
 /**
   * Strategy to serialize a tagged type (used to discriminate sum types).
@@ -83,6 +83,12 @@ object TypeTagOWrites {
     }
 
 
+  def own(tagOwrites: OWrites[String], typeNameTransformer: String => String): TypeTagOWrites =
+    new TypeTagOWrites {
+      def owrites[A](typeName: String, owrites: OWrites[A]): OWrites[A] =
+        OWrites[A](a => tagOwrites.writes(typeNameTransformer(typeName)) ++ owrites.writes(a))
+    }
+
 }
 
 /**
@@ -119,6 +125,12 @@ object TypeTagReads {
     new TypeTagReads {
       def reads[A](typeName: String, reads: Reads[A]): Reads[A] =
         tagReads.filter(_ == typeName).flatMap(_ => reads)
+    }
+
+  def own(tagReads: Reads[String], typeNameTransformer: String => String): TypeTagReads =
+    new TypeTagReads {
+      def reads[A](typeName: String, reads: Reads[A]): Reads[A] =
+        tagReads.filter(_ == typeNameTransformer(typeName)).flatMap(_ => reads)
     }
 
 }
