@@ -4,13 +4,13 @@ name := "play-json-derived-codecs"
 
 enablePlugins(GitVersioning)
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.0"
 
 libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.2",
-  "org.scalatest" %% "scalatest" % "2.2.6" % Test,
-  "org.scalacheck" %% "scalacheck" % "1.12.5" % Test,
-  "com.typesafe.play" %% "play-json" % "2.5.2"
+  "org.scalatest" %% "scalatest" % "3.0.1" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
+  "com.typesafe.play" %% "play-json" % "2.6.0-M3"
 )
 
 publishTo := {
@@ -44,7 +44,7 @@ scalacOptions ++= Seq(
   "-encoding", "UTF-8",
   "-feature",
   "-unchecked",
-  "-Yinline-warnings",
+  //  "-Yinline-warnings",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
   "-Ywarn-numeric-widen",
@@ -55,3 +55,9 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions in Test += "-Yrangepos"
+
+lazy val `play-json-derived-codecs` = crossProject.crossType(CrossType.Pure)
+
+lazy val `play-json-derived-codecsJVM` = `play-json-derived-codecs`.jvm
+lazy val `play-json-derived-codecsJS` = `play-json-derived-codecs`.js
+
