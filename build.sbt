@@ -10,8 +10,8 @@ val library =
       name := "play-json-derived-codecs",
       libraryDependencies ++= Seq(
         "com.chuusai" %%% "shapeless" % "2.3.2",
-        "org.scalatest" %%% "scalatest" % "3.0.1" % Test,
-        "org.scalacheck" %%% "scalacheck" % "1.13.4" % Test,
+        "org.scalatest" %%% "scalatest" % "3.0.3" % Test,
+        "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
         "com.typesafe.play" %%% "play-json" % "2.6.0-M3"
       ),
       publishTo := {
