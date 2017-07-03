@@ -1,6 +1,6 @@
-scalaVersion in ThisBuild := "2.12.1"
+scalaVersion in ThisBuild := "2.12.2"
 
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.11.8")
+crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.11.11")
 
 val library =
   crossProject.crossType(CrossType.Pure)
@@ -10,9 +10,9 @@ val library =
       name := "play-json-derived-codecs",
       libraryDependencies ++= Seq(
         "com.chuusai" %%% "shapeless" % "2.3.2",
-        "org.scalatest" %%% "scalatest" % "3.0.1" % Test,
-        "org.scalacheck" %%% "scalacheck" % "1.13.4" % Test,
-        "com.typesafe.play" %%% "play-json" % "2.6.0-M3"
+        "org.scalatest" %%% "scalatest" % "3.0.3" % Test,
+        "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
+        "com.typesafe.play" %%% "play-json" % "2.6.1"
       ),
       publishTo := {
         val nexus = "https://oss.sonatype.org"
