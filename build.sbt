@@ -12,7 +12,7 @@ val library =
         "com.chuusai" %%% "shapeless" % "2.3.2",
         "org.scalatest" %%% "scalatest" % "3.0.3" % Test,
         "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
-        "com.typesafe.play" %%% "play-json" % "2.6.0-M3"
+        "com.typesafe.play" %%% "play-json" % "2.6.1"
       ),
       publishTo := {
         val nexus = "https://oss.sonatype.org"
