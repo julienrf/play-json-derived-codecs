@@ -1,6 +1,6 @@
-scalaVersion in ThisBuild := "2.12.1"
+scalaVersion in ThisBuild := "2.12.2"
 
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.11.8")
+crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.11.11")
 
 val library =
   crossProject.crossType(CrossType.Pure)
