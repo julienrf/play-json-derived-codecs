@@ -10,9 +10,9 @@ Compared to the built-in macros, this project brings support for:
 - recursive types ;
 - polymorphic types.
 
-The artifacts are built for Scala 2.11, Play 2.5.x and Shapeless 2.3.0.
+The artifacts are built for Scala and Scala.js 2.11 and 2.12, Play 2.6 and Shapeless 2.3.
 
-For Play 2.4.x compatibility see version [`3.2`](https://github.com/julienrf/play-json-derived-codecs/tree/v3.2).
+For Play 2.5 compatibility see version [`3.3`](https://github.com/julienrf/play-json-derived-codecs/tree/v3.3).
 
 ## Usage
 
@@ -26,7 +26,7 @@ object User {
 }
 ~~~
 
-The [API](https://www.javadoc.io/doc/org.julienrf/play-json-derived-codecs_2.11/3.3) is simple: the object
+The [API](https://www.javadoc.io/doc/org.julienrf/play-json-derived-codecs_2.12) is simple: the object
 `julienrf.json.derived` has just three methods.
 
 - `reads[A]`, derives a `Reads[A]` ;
