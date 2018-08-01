@@ -1,18 +1,21 @@
-scalaVersion in ThisBuild := "2.12.2"
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.11.11")
+scalaVersion in ThisBuild := "2.12.6"
+
+crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.11.12")
 
 val library =
-  crossProject.crossType(CrossType.Pure)
+  crossProject(JSPlatform, JVMPlatform)
+    .crossType(CrossType.Pure)
     .enablePlugins(GitVersioning)
     .settings(
       organization := "org.julienrf",
       name := "play-json-derived-codecs",
       libraryDependencies ++= Seq(
-        "com.chuusai" %%% "shapeless" % "2.3.2",
-        "org.scalatest" %%% "scalatest" % "3.0.3" % Test,
+        "com.chuusai" %%% "shapeless" % "2.3.3",
+        "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
         "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
-        "com.typesafe.play" %%% "play-json" % "2.6.1"
+        "com.typesafe.play" %%% "play-json" % "2.6.9"
       ),
       publishTo := {
         val nexus = "https://oss.sonatype.org"
