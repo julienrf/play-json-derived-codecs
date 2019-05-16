@@ -84,6 +84,25 @@ implicit val fooOWrites: OWrites[Foo] =
 
 In case you need even more control, you can still implement your own `TypeTagOWrites` and `TypeTagReads`.
 
+### Custom format for certain types in hierarchy
+
+Sometimes, you might want to represent one type differently than default format would. This can be done by creating an instance of `DerivedReads` or `DerivedWrites` for said type:
+
+~~~ scala
+sealed trait Hierarchy
+case class First(x: Integer)
+case class Second(y: String)
+
+implicit val SecondReads: DerivedReads[Second] = new DerivedReads[Second] {
+  def reads(tagReads: TypeTagReads, adapter: NameAdapter) = (__ \ "foo").read[Integer].map(foo => Second(foo.toString))
+}
+
+val defaultTypeFormat = (__ \ "type").format[String]
+implicit val HierarchyFormat = derived.flat.oformat[Hierarchy](defaultTypeFormat)
+~~~
+
+This will cause `Second` to be read with `SecondReads`, while the writes will remain automatically generated.
+
 ## Contributors
 
 See [here](https://github.com/julienrf/play-json-variants/graphs/contributors).
