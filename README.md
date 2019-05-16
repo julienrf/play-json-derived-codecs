@@ -94,7 +94,7 @@ case class First(x: Integer)
 case class Second(y: Integer)
 
 implicit val SecondReads: DerivedReads[Second] = new DerivedReads[Second] {
-  def reads(tagReads: TypeTagReads, adapter: NameAdapter) = (__ \ "foo").read[Integer].map(foo => Second(foo))
+  def reads(tagReads: TypeTagReads, adapter: NameAdapter) = tagReads.reads("Second", (__ \ "foo").read[Integer].map(foo => Second(foo)))
 }
 
 implicit val SecondWrites: DerivedOWrites[Second] = new DerivedOWrites[Second] {
