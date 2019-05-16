@@ -86,22 +86,30 @@ In case you need even more control, you can still implement your own `TypeTagOWr
 
 ### Custom format for certain types in hierarchy
 
-Sometimes, you might want to represent one type differently than default format would. This can be done by creating an instance of `DerivedReads` or `DerivedWrites` for said type:
+Sometimes, you might want to represent one type differently than default format would. This can be done by creating an instance of `DerivedReads` or `DerivedWrites` for said type. Below is an example of implementing both custom reads and writes for a single class in a hierarchy:
 
 ~~~ scala
 sealed trait Hierarchy
 case class First(x: Integer)
-case class Second(y: String)
+case class Second(y: Integer)
 
 implicit val SecondReads: DerivedReads[Second] = new DerivedReads[Second] {
-  def reads(tagReads: TypeTagReads, adapter: NameAdapter) = (__ \ "foo").read[Integer].map(foo => Second(foo.toString))
+  def reads(tagReads: TypeTagReads, adapter: NameAdapter) = (__ \ "foo").read[Integer].map(foo => Second(foo))
+}
+
+implicit val SecondWrites: DerivedOWrites[Second] = new DerivedOWrites[Second] {
+  override def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter): OWrites[Second] =
+    tagOwrites.owrites[Second](
+      "Second",
+      OWrites[Second](s => JsObject(("foo", Json.toJson(s.y)) :: Nil))
+    )
 }
 
 val defaultTypeFormat = (__ \ "type").format[String]
 implicit val HierarchyFormat = derived.flat.oformat[Hierarchy](defaultTypeFormat)
 ~~~
 
-This will cause `Second` to be read with `SecondReads`, while the writes will remain automatically generated.
+This will cause `Second` to be read with `SecondReads`, and read with `SecondWrites`.
 
 ## Contributors
 
