@@ -86,7 +86,7 @@ In case you need even more control, you can still implement your own `TypeTagOWr
 
 ### Custom format for certain types in hierarchy
 
-Sometimes, you might want to represent one type differently than default format would. This can be done by creating an instance of `DerivedReads` or `DerivedWrites` for said type. Below is an example of implementing both custom reads and writes for a single class in a hierarchy:
+Sometimes, you might want to represent one type differently than default format would. This can be done by creating an implicit instance of `DerivedReads` or `DerivedWrites` for said type. Below is an example of implementing both custom reads and writes for a single class in a hierarchy:
 
 ~~~ scala
 sealed trait Hierarchy
