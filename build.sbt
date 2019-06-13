@@ -1,8 +1,8 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-scalaVersion in ThisBuild := "2.12.6"
+scalaVersion in ThisBuild := "2.13.0"
 
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.11.12", "2.13.0-M5")
+crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.12.8", "2.11.12")
 
 val library =
   crossProject(JSPlatform, JVMPlatform)
@@ -13,9 +13,9 @@ val library =
       name := "play-json-derived-codecs",
       libraryDependencies ++= Seq(
         "com.chuusai" %%% "shapeless" % "2.3.3",
-        "org.scalatest" %%% "scalatest" % "3.0.6-SNAP6" % Test,
+        "org.scalatest" %%% "scalatest" % "3.0.8" % Test,
         "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
-        "com.typesafe.play" %%% "play-json" % "2.7.0"
+        "com.typesafe.play" %%% "play-json" % "2.7.4"
       ),
       publishTo := {
         val nexus = "https://oss.sonatype.org"
@@ -47,12 +47,11 @@ val library =
           "-Ywarn-dead-code",
           "-Ywarn-numeric-widen",
           "-Ywarn-value-discard",
-          "-Xlint",
-          "-Xfuture"
+          "-Xlint"
         ) ++
         (CrossVersion.partialVersion(scalaVersion.value) match {
           case Some((2, n)) if n >= 13 => Seq("-Xsource:2.14")
-          case _ => Seq("-Yno-adapted-args", "-Ywarn-unused-import")
+          case _ => Seq("-Yno-adapted-args", "-Ywarn-unused-import", "-Xfuture")
         })
       },
       scalacOptions in Test += "-Yrangepos"

@@ -139,16 +139,18 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
   }
 
   feature("error messages must be helpful") {
-    sealed trait Foo
-    case class Bar(x: Int) extends Foo
-    case class Baz(s: String) extends Foo
-    val fooFlatFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
-    val readResult = fooFlatFormat.reads(Json.parse("""{"type": "Bar", "x": "string"}"""))
-    val errorString = readResult.fold(
-      _ flatMap { case (path, errors) =>
-		  errors.map(_.message + (if (path != __) " at " + path.toString else "")) } mkString ("; "),
-      _ => "No Errors")
-    assert(errorString == "error.sealed.trait; error.expected.jsnumber at /x")
+    scenario("error messages must be helpful") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+      val fooFlatFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
+      val readResult = fooFlatFormat.reads(Json.parse("""{"type": "Bar", "x": "string"}"""))
+      val errorString = readResult.fold(
+        _.flatMap { case (path, errors) =>
+          errors.map(_.message + (if (path != __) " at " + path.toString() else "")) }.sorted.mkString("; "),
+        _ => "No Errors")
+      assert(errorString == "error.expected.jsnumber at /x; error.sealed.trait")
+    }
   }
 
 }
