@@ -48,6 +48,10 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
         implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
         identityLaw[Foo]
       }
+      {
+        implicit val fooFormat: OFormat[Foo] = withTypeTag.oformat(TypeTagSetting.FullClassName)
+        identityLaw[Foo]
+      }
     }
 
     scenario("recursive types") {
@@ -92,19 +96,23 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     check((a: A) => reads.reads(owrites.writes(a)).fold(_ => false, _ == a))
 
   feature("default codecs represent sum types using nested JSON objects") {
-    sealed trait Foo
-    case class Bar(x: Int) extends Foo
-    case class Baz(s: String) extends Foo
-    val fooFormat: OFormat[Foo] = oformat()
-    assert(fooFormat.writes(Bar(42)) == Json.obj("Bar" -> Json.obj("x" -> JsNumber(42))))
+    scenario("default codecs represent sum types using nested JSON objects") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+      val fooFormat: OFormat[Foo] = oformat()
+      assert(fooFormat.writes(Bar(42)) == Json.obj("Bar" -> Json.obj("x" -> JsNumber(42))))
+    }
   }
 
   feature("sum types JSON representation can be customized") {
-    sealed trait Foo
-    case class Bar(x: Int) extends Foo
-    case class Baz(s: String) extends Foo
-    val fooFlatFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
-    assert(fooFlatFormat.writes(Bar(42)) == Json.obj("type" -> "Bar", "x" -> JsNumber(42)))
+    scenario("sum types JSON representation can be customized") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+      val fooFlatFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
+      assert(fooFlatFormat.writes(Bar(42)) == Json.obj("type" -> "Bar", "x" -> JsNumber(42)))
+    }
   }
 
   feature("case classes can have optional values") {
@@ -150,6 +158,24 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
           errors.map(_.message + (if (path != __) " at " + path.toString() else "")) }.sorted.mkString("; "),
         _ => "No Errors")
       assert(errorString == "error.expected.jsnumber at /x; error.sealed.trait")
+    }
+  }
+
+  feature("user-defined type tags") {
+    scenario("user-defined type tags") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+
+      implicit val barTypeTag: CustomTypeTag[Bar] = CustomTypeTag("_bar_")
+      implicit val bazTypeTag: CustomTypeTag[Baz] = CustomTypeTag("_baz_")
+
+      implicit val fooFormat: OFormat[Foo] = withTypeTag.oformat(TypeTagSetting.UserDefinedName)
+
+      val foo: Foo = Bar(42)
+      val json = fooFormat.writes(Bar(42))
+      assert(json == Json.obj("_bar_" -> Json.obj("x" -> 42)))
+      assert(fooFormat.reads(json).asEither == Right(foo))
     }
   }
 
