@@ -39,7 +39,7 @@ package object derived {
 
     def owrites[A](
       typeName: OWrites[String],
-      adapter: NameAdapter = NameAdapter.identity,
+      adapter: NameAdapter = NameAdapter.identity
     )(implicit
       derivedOWrites: Lazy[DerivedOWrites[A, TypeTag.ShortClassName]]
     ): OWrites[A] =
