@@ -1,6 +1,11 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{Reads, Json, OWrites, __}
+import play.api.libs.json.{Json, OFormat, OWrites, Reads, __}
+import shapeless.Witness
+import shapeless.labelled.FieldType
+
+import scala.language.higherKinds
+import scala.reflect.ClassTag
 
 /**
   * Strategy to serialize a tagged type (used to discriminate sum types).
@@ -120,5 +125,89 @@ object TypeTagReads {
       def reads[A](typeName: String, reads: Reads[A]): Reads[A] =
         tagReads.filter(_ == typeName).flatMap(_ => reads)
     }
+
+}
+
+/** Strategy to serialize and de-serialize a tagged type */
+trait TypeTagOFormat extends TypeTagReads with TypeTagOWrites
+
+object TypeTagOFormat {
+
+  def apply(ttReads: TypeTagReads, ttOWrites: TypeTagOWrites): TypeTagOFormat =
+    new TypeTagOFormat {
+      def reads[A](typeName: String, reads: Reads[A]): Reads[A] = ttReads.reads(typeName, reads)
+      def owrites[A](typeName: String, owrites: OWrites[A]): OWrites[A] = ttOWrites.owrites(typeName, owrites)
+    }
+
+  val nested: TypeTagOFormat =
+    TypeTagOFormat(TypeTagReads.nested, TypeTagOWrites.nested)
+
+  def flat(tagFormat: OFormat[String]): TypeTagOFormat =
+    TypeTagOFormat(TypeTagReads.flat(tagFormat), TypeTagOWrites.flat(tagFormat))
+
+}
+
+/**
+  * Implicit instances of this type define strategies to retrieve
+  * the type name of a given `FieldType[K, T]` type.
+  */
+trait TypeTag[A] {
+  def value: String
+}
+
+object TypeTag {
+
+  /** Use the class name (as it is written in Scala) as a type tag */
+  trait ShortClassName[A] extends TypeTag[A]
+
+  object ShortClassName {
+    implicit def fromWitness[K <: Symbol, A](implicit wt: Witness.Aux[K]): ShortClassName[FieldType[K, A]] =
+      new ShortClassName[FieldType[K, A]] {
+        def value: String = wt.value.name
+      }
+  }
+
+  /** Use the fully qualified JVM name of the class as a type tag */
+  trait FullClassName[A] extends TypeTag[A]
+
+  object FullClassName {
+    implicit def fromClassTag[K, A](implicit ct: ClassTag[A]): FullClassName[FieldType[K, A]] =
+      new FullClassName[FieldType[K, A]] {
+        def value: String = ct.runtimeClass.getName
+      }
+  }
+
+  /** Use a type tag supplied by the user via a `CustomTypeTag` instance */
+  trait UserDefinedName[A] extends TypeTag[A]
+
+  object UserDefinedName {
+    implicit def fromCustomTypeTag[K, A](implicit ctt: CustomTypeTag[A]): UserDefinedName[FieldType[K, A]] =
+      new UserDefinedName[FieldType[K, A]] {
+        def value: String = ctt.typeTag
+      }
+  }
+
+}
+
+case class CustomTypeTag[A](typeTag: String)
+
+/** Used for configuring the derivation process */
+trait TypeTagSetting {
+  type Value[A] <: TypeTag[A]
+}
+
+object TypeTagSetting {
+
+  object ShortClassName extends TypeTagSetting {
+    type Value[A] = TypeTag.ShortClassName[A]
+  }
+
+  object FullClassName extends TypeTagSetting {
+    type Value[A] = TypeTag.FullClassName[A]
+  }
+
+  object UserDefinedName extends TypeTagSetting {
+    type Value[A] = TypeTag.UserDefinedName[A]
+  }
 
 }

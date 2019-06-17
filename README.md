@@ -58,10 +58,18 @@ The default JSON representation of `Bar("quux", 42)` is the following JSON objec
 }
 ~~~
 
-### Custom Representation of Sum Types
+### Configuring the Derivation Process
+
+Three aspects of the derivation process can be configured:
+
+- the representation of sum types,
+- the way case class field names are mapped to JSON property names,
+- the type name used to discriminate sum types.
+
+#### Custom Representation of Sum Types
 
 The default representation of sum types may not fit all use cases. For instance, it is not very
-practical for enumerations. For this reason, the way sum types are represented is extensible.
+practical for enumerations.
 
 For instance, you might want to represent the `Bar("quux", 42)` value as the following JSON object:
 
@@ -82,7 +90,36 @@ implicit val fooOWrites: OWrites[Foo] =
   derived.flat.owrites((__ \ "type").write[String])
 ~~~
 
-In case you need even more control, you can still implement your own `TypeTagOWrites` and `TypeTagReads`.
+In case you need even more control, you can implement your own `TypeTagOWrites` and `TypeTagReads`.
+
+#### Custom Field Names Mapping
+
+By default, case class fields are mapped to JSON object properties having the same name.
+
+You can transform this mapping by supplying a different `NameAdapter` parameter. For
+instance, to use “snake case” in JSON:
+
+~~~ scala
+implicit val userFormat: OFormat[User] = derived.oformat(adapter = NameAdapter.snakeCase)
+~~~
+
+#### Custom Type Names
+
+By default, case class names are used as discriminators (type tags) for sum types.
+
+You can configure the type tags to use by using the `derived.withTypeTag` object:
+
+~~~ scala
+implicit val fooFormat: OFormat[Foo] =
+  derived.withTypeTag.oformat(TypeTagSetting.FullClassName)
+~~~
+
+The library provides the following `TypeTagSetting` values out of the box:
+
+- `TypeTagSetting.ShortClassName`: use the class name (as it is defined in Scala)
+- `TypeTagSetting.FullClassName`: use the fully qualified name
+- `TypeTagSetting.UserDefinedName`: require the presence of an implicit `CustomTypeTag[A]`
+  for all type `A` of the sum type, providing the type tag to use
 
 ### Custom format for certain types in hierarchy
 
