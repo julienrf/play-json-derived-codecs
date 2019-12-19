@@ -2,7 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 scalaVersion in ThisBuild := "2.13.0"
 
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.12.8", "2.11.12")
+crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.12.8")
 
 val library =
   crossProject(JSPlatform, JVMPlatform)
@@ -15,7 +15,7 @@ val library =
         "com.chuusai" %%% "shapeless" % "2.3.3",
         "org.scalatest" %%% "scalatest" % "3.0.8" % Test,
         "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
-        "com.typesafe.play" %%% "play-json" % "2.7.4"
+        "com.typesafe.play" %%% "play-json" % "2.8.0"
       ),
       publishTo := {
         val nexus = "https://oss.sonatype.org"
