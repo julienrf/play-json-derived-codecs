@@ -9,7 +9,7 @@ import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, LabelledGener
   *
   * @tparam TT Type of TypeTag to use to discriminate alternatives of sealed traits
   */
-trait DerivedOWrites[-A, TT[A] <: TypeTag[A]] {
+trait DerivedOWrites[A, TT[A] <: TypeTag[A]] {
 
   /**
     * @param tagOwrites The strategy to use to serialize sum types
