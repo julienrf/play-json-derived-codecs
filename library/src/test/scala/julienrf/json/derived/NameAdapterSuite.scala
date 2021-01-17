@@ -2,15 +2,15 @@ package julienrf.json.derived
 
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.FeatureSpec
-import org.scalatest.prop.Checkers
+import org.scalatest.featurespec.AnyFeatureSpec
+import org.scalatestplus.scalacheck.Checkers
 import play.api.libs.json._
 
-class NameAdapterSuite extends FeatureSpec with Checkers {
+class NameAdapterSuite extends AnyFeatureSpec with Checkers {
 
-  feature("use camelCase as the default casing for field names") {
+  Feature("use camelCase as the default casing for field names") {
 
-    scenario("product type") {
+    Scenario("product type") {
       case class Foo(sC: String, iC: Int)
       implicit val fooArbitrary: Arbitrary[(Foo, JsValue)] =
         Arbitrary(for (s <- Gen.alphaStr; i <- arbitrary[Int]) yield (Foo(s, i), Json.obj("sC" -> s, "iC" -> i)))
@@ -20,9 +20,9 @@ class NameAdapterSuite extends FeatureSpec with Checkers {
 
   }
 
-  feature("customize the casing for field names") {
+  Feature("customize the casing for field names") {
 
-    scenario("product type") {
+    Scenario("product type") {
       case class Foo(sC: String, iC: Int)
       implicit val fooArbitrary: Arbitrary[(Foo, JsValue)] =
         Arbitrary(for (s <- Gen.alphaStr; i <- arbitrary[Int]) yield (Foo(s, i), Json.obj("s_c" -> s, "i_c" -> i)))
@@ -30,7 +30,7 @@ class NameAdapterSuite extends FeatureSpec with Checkers {
       jsonIdentityLaw[Foo]
     }
 
-    scenario("sum types") {
+    Scenario("sum types") {
       sealed trait Foo
       case class Bar(xC: Int) extends Foo
       case class Baz(sC: String) extends Foo
@@ -50,7 +50,7 @@ class NameAdapterSuite extends FeatureSpec with Checkers {
       jsonIdentityLaw[Foo]
     }
 
-    scenario("sum types with options") {
+    Scenario("sum types with options") {
       sealed trait Foo
       case class Bar(xC: Int) extends Foo
       case class Baz(sC: String) extends Foo
@@ -73,7 +73,7 @@ class NameAdapterSuite extends FeatureSpec with Checkers {
 
 
 
-    scenario("recursive type") {
+    Scenario("recursive type") {
       sealed trait Tree
       case class Leaf(lS: String) extends Tree
       case class Node(lhsSnake: Tree, rhsSnake: Tree) extends Tree

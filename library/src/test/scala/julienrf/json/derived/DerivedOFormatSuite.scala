@@ -2,15 +2,15 @@ package julienrf.json.derived
 
 import org.scalacheck.{Gen, Arbitrary}
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.FeatureSpec
-import org.scalatest.prop.Checkers
+import org.scalatest.featurespec.AnyFeatureSpec
+import org.scalatestplus.scalacheck.Checkers
 import play.api.libs.json.{JsNumber, Json, OFormat, OWrites, Reads, __}
 
-class DerivedOFormatSuite extends FeatureSpec with Checkers {
+class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
 
-  feature("encoding andThen decoding = identity") {
+  Feature("encoding andThen decoding = identity") {
 
-    scenario("product type") {
+    Scenario("product type") {
       case class Foo(s: String, i: Int)
       implicit val fooArbitrary: Arbitrary[Foo] =
         Arbitrary(for (s <- arbitrary[String]; i <- arbitrary[Int]) yield Foo(s, i))
@@ -18,14 +18,14 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
       identityLaw[Foo]
     }
 
-    scenario("tuple type") {
+    Scenario("tuple type") {
       type Foo = (String, Int)
       implicit val fooFormat: OFormat[Foo] = oformat()
 
       identityLaw[Foo]
     }
 
-    scenario("sum types") {
+    Scenario("sum types") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo
@@ -54,7 +54,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
       }
     }
 
-    scenario("recursive types") {
+    Scenario("recursive types") {
       sealed trait Tree
       case class Leaf(s: String) extends Tree
       case class Node(lhs: Tree, rhs: Tree) extends Tree
@@ -83,7 +83,7 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
       }
     }
 
-    scenario("polylmorphic types") {
+    Scenario("polylmorphic types") {
       case class Quux[A](value: A)
       implicit val fooFormat: OFormat[Quux[Int]] = oformat()
       implicit val arbitraryFoo: Arbitrary[Quux[Int]] =
@@ -95,8 +95,8 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
   def identityLaw[A](implicit reads: Reads[A], owrites: OWrites[A], arbA: Arbitrary[A]): Unit =
     check((a: A) => reads.reads(owrites.writes(a)).fold(_ => false, _ == a))
 
-  feature("default codecs represent sum types using nested JSON objects") {
-    scenario("default codecs represent sum types using nested JSON objects") {
+  Feature("default codecs represent sum types using nested JSON objects") {
+    Scenario("default codecs represent sum types using nested JSON objects") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo
@@ -105,8 +105,8 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     }
   }
 
-  feature("sum types JSON representation can be customized") {
-    scenario("sum types JSON representation can be customized") {
+  Feature("sum types JSON representation can be customized") {
+    Scenario("sum types JSON representation can be customized") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo
@@ -115,25 +115,25 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     }
   }
 
-  feature("case classes can have optional values") {
+  Feature("case classes can have optional values") {
     case class Foo(s: Option[String])
     implicit val fooFormat: OFormat[Foo] = oformat()
     implicit val arbitraryFoo: Arbitrary[Foo] =
       Arbitrary(for (s <- arbitrary[Option[String]]) yield Foo(s))
 
-    scenario("identity law") {
+    Scenario("identity law") {
       identityLaw[Foo]
     }
 
-    scenario("Missing fields are successfully decoded as `None`") {
+    Scenario("Missing fields are successfully decoded as `None`") {
       assert(fooFormat.reads(Json.obj()).asOpt.contains(Foo(None)))
     }
 
-    scenario("Wrong fields are errors") {
+    Scenario("Wrong fields are errors") {
       assert(fooFormat.reads(Json.obj("s" -> 42)).asOpt.isEmpty)
     }
 
-    scenario("Nested objects") {
+    Scenario("Nested objects") {
       case class Bar(foo: Foo)
       implicit val barFormat: OFormat[Bar] = oformat()
       implicit val arbitraryBar: Arbitrary[Bar] =
@@ -146,8 +146,8 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     }
   }
 
-  feature("error messages must be helpful") {
-    scenario("error messages must be helpful") {
+  Feature("error messages must be helpful") {
+    Scenario("error messages must be helpful") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo
@@ -161,8 +161,8 @@ class DerivedOFormatSuite extends FeatureSpec with Checkers {
     }
   }
 
-  feature("user-defined type tags") {
-    scenario("user-defined type tags") {
+  Feature("user-defined type tags") {
+    Scenario("user-defined type tags") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo

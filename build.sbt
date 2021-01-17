@@ -1,6 +1,6 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-scalaVersion in ThisBuild := "2.13.0"
+scalaVersion in ThisBuild := "2.13.3"
 
 crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.12.8")
 
@@ -13,9 +13,10 @@ val library =
       name := "play-json-derived-codecs",
       libraryDependencies ++= Seq(
         "com.chuusai" %%% "shapeless" % "2.3.3",
-        "org.scalatest" %%% "scalatest" % "3.0.8" % Test,
-        "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
-        "com.typesafe.play" %%% "play-json" % "2.8.0"
+        "org.scalatest" %%% "scalatest" % "3.2.3" % Test,
+        "org.scalacheck" %%% "scalacheck" % "1.15.2" % Test,
+        "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.3.0" % Test,
+        "com.typesafe.play" %%% "play-json" % "2.9.2"
       ),
       publishTo := {
         val nexus = "https://oss.sonatype.org"
@@ -50,7 +51,7 @@ val library =
           "-Xlint"
         ) ++
         (CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, n)) if n >= 13 => Seq("-Xsource:2.14")
+          case Some((2, n)) if n >= 13 => Seq("-Xsource:3")
           case _ => Seq("-Yno-adapted-args", "-Ywarn-unused-import", "-Xfuture")
         })
       },
