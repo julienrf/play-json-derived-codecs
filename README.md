@@ -10,9 +10,9 @@ Compared to the built-in macros, this project brings support for:
 - recursive types ;
 - polymorphic types.
 
-The artifacts are built for Scala and Scala.js 2.12, and 2.13, Play 2.8 and Shapeless 2.3.
+The artifacts are built for Scala and Scala.js 2.12, and 2.13, Play 2.9 and Shapeless 2.3.
 
-For Play 2.7 compatibility see version [`6.0.0`](https://github.com/julienrf/play-json-derived-codecs/tree/v6.0.0).
+For Play 2.8 compatibility see version [`7.0.0`](https://github.com/julienrf/play-json-derived-codecs/tree/v6.0.0).
 
 ## Usage
 
