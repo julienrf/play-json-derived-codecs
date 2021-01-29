@@ -2,15 +2,17 @@ name: Release
 on:
   push:
     branches: [master, main]
-    tags: ["*"]
+    tags: ["v*"]
 jobs:
   publish:
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v10
+      - uses: coursier/cache-action@v5
       - run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
