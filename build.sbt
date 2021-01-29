@@ -4,6 +4,8 @@ scalaVersion in ThisBuild := "2.13.3"
 
 crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.12.8")
 
+
+
 val library =
   crossProject(JSPlatform, JVMPlatform)
     .crossType(CrossType.Pure)
@@ -18,19 +20,14 @@ val library =
         "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.3.0" % Test,
         "com.typesafe.play" %%% "play-json" % "2.9.2"
       ),
-      publishTo := {
-        val nexus = "https://oss.sonatype.org"
-        if (isSnapshot.value) Some("snapshots" at s"$nexus/content/repositories/snapshots")
-        else Some("releases" at s"$nexus/service/local/staging/deploy/maven2")
-      },
-      pomExtra :=
-        <developers>
-          <developer>
-            <id>julienrf</id>
-            <name>Julien Richard-Foy</name>
-            <url>http://julien.richard-foy.fr</url>
-          </developer>
-        </developers>,
+      developers := List(
+        Developer(
+          "julienrf",
+          "Julien Richard-Foy",
+          "julien@richard-foy.fr",
+          url("http://julien.richard-foy.fr")
+        )
+      ),
       homepage := Some(url(s"https://github.com/julienrf/${name.value}")),
       licenses := Seq("MIT License" -> url("http://opensource.org/licenses/mit-license.php")),
       scmInfo := Some(
