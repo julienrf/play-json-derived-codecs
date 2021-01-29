@@ -148,6 +148,32 @@ implicit val HierarchyFormat = derived.flat.oformat[Hierarchy](defaultTypeFormat
 
 This will cause `Second` to be read with `SecondReads`, and read with `SecondWrites`.
 
+### Avoiding redundant derivation
+
+By default, the auto-derivation mechanism will be applied to the whole sealed hierarchy. This might be costly in terms of compile-time (as Shapeless is being used under the hood).
+To avoid this, it is possible to define an `OFormat` for the different cases, thus only using auto-derivation for the branching in the sealed trait and nothing else.
+~~~ scala
+sealed trait Hierarchy
+case class First(a: Int, b: Int, c: Int)
+case class Second(x: Int, y: Int, c: Int)
+
+object First {
+  implicit val format: OFormat[First] = Json.format
+}
+
+object Second {
+  implicit val format: OFormat[Second] = Json.format
+}
+
+implicit val HierarchyFormat = derived.oformat[Hierarchy]
+~~~
+
+Note: it's important that the provided `Format`s are of the specific `OFormat` sub-type, otherwise, they won't be picked up by the implicit machinery.
+
+Without the provided `Format`s the derivation mechanism will traverse all the fields in the hierarchy (in this case 6 in total), which may be costly for larger case classes.
+
+Providing the implicits this way can also be used for customization without having to deal with supplying your own type-tags.
+
 ## Contributors
 
 See [here](https://github.com/julienrf/play-json-variants/graphs/contributors).
