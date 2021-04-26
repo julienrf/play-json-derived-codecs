@@ -151,7 +151,7 @@ This will cause `Second` to be read with `SecondReads`, and read with `SecondWri
 ### Avoiding redundant derivation
 
 By default, the auto-derivation mechanism will be applied to the whole sealed hierarchy. This might be costly in terms of compile-time (as Shapeless is being used under the hood).
-To avoid this, it is possible to define an `OFormat` for the different cases, thus only using auto-derivation for the branching in the sealed trait and nothing else.
+To avoid this, it is possible to define a `Format` for the different cases, thus only using auto-derivation for the branching in the sealed trait and nothing else.
 ~~~ scala
 sealed trait Hierarchy
 case class First(a: Int, b: Int, c: Int)
@@ -168,7 +168,8 @@ object Second {
 implicit val HierarchyFormat = derived.oformat[Hierarchy]
 ~~~
 
-Note: it's important that the provided `Format`s are of the specific `OFormat` sub-type, otherwise, they won't be picked up by the implicit machinery.
+Note: in case `derived.flat` is being used, it's important that the provided `Format`s are of the specific `OFormat` sub-type, otherwise, they won't be picked up by the implicit machinery.
+For this reason, `Json.valueFormat` is not compatible with `derived.flat` and they should not be used together.
 
 Without the provided `Format`s the derivation mechanism will traverse all the fields in the hierarchy (in this case 6 in total), which may be costly for larger case classes.
 

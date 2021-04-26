@@ -8,33 +8,36 @@ import shapeless.{:+:, ::, CNil, Coproduct, HList, HNil, Inl, Inr, LabelledGener
   * Derives an `OWrites[A]`
   *
   * @tparam TT Type of TypeTag to use to discriminate alternatives of sealed traits
+  * @tparam W A subtype of `Writes` that this derived value requires for its type-tag generation.
+  *           This can either be a `Writes` for the nested format or an `OWrites` for the flat
+  *           format. See the comment on [[julienrf.json.derived.TypeTagOWrites.W]].
+  *
   */
-trait DerivedOWrites[A, TT[A] <: TypeTag[A]] {
-
+trait DerivedOWrites[A, TT[A] <: TypeTag[A], W[_]] {
   /**
     * @param tagOwrites The strategy to use to serialize sum types
     * @param adapter The fields naming strategy
     * @return The derived `OWrites[A]`
     */
-  def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter): OWrites[A]
+  def owrites(tagOwrites: TypeTagOWrites.Aux[W], adapter: NameAdapter): OWrites[A]
 }
 
-object DerivedOWrites extends DerivedOWritesInstances
+object DerivedOWrites extends DerivedOWritesInstances {
+  type Nested[A, TT[A] <: TypeTag[A]] = DerivedOWrites[A, TT, Writes]
+  type Flat[A, TT[A] <: TypeTag[A]] = DerivedOWrites[A, TT, OWrites]
+}
 
 trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
   /** Supports reading a coproduct where the left branch already has a defined `OWrites` instance.
     * This will avoid using the `Generic` implicit for cases where it is possible to use a pre-existing
-    * `OWrites`, thus enabling users to easily plug-in their own `OFormat` as well as saving on compile-times.
-    *
-    * We cannot use a plain `Writes` here since it will not comply with the requirements of the
-    * provided `TypeTagOWrites`, which can only deal with `OWrites` for the purposes of creating
-    * the `flat` format.
+    * `Writes`/`OWrites`, thus enabling users to easily plug-in their own `Format`/`OFormat` as well
+    * as saving on compile-times.
     */
-  implicit def owritesPredefinedCoProduct[K <: Symbol, L, R <: Coproduct, TT[A] <: TypeTag[A]](implicit
-    owritesL: Lazy[OWrites[L]],
-    owritesR: Lazy[DerivedOWrites[R, TT]],
+  implicit def owritesPredefinedCoProduct[K <: Symbol, L, R <: Coproduct, TT[A] <: TypeTag[A], W[A] >: OWrites[A]](implicit
+    owritesL: Lazy[W[L]],
+    owritesR: Lazy[DerivedOWrites[R, TT, W]],
     typeTag: TT[FieldType[K, L]]
-  ): DerivedOWrites[FieldType[K, L] :+: R, TT] =
+  ): DerivedOWrites[FieldType[K, L] :+: R, TT, W] =
     DerivedOWritesUtil.makeCoProductOWrites(
       (_, _) => owritesL.value,
       owritesR,
@@ -43,18 +46,18 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
 
 trait DerivedOWritesInstances1 extends DerivedOWritesInstances2 {
 
-  implicit def owritesHNil[TT[A] <: TypeTag[A]]: DerivedOWrites[HNil, TT] =
-    new DerivedOWrites[HNil, TT] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = OWrites[HNil] { _ => Json.obj() }
+  implicit def owritesHNil[TT[A] <: TypeTag[A], W[_]]: DerivedOWrites[HNil, TT, W] =
+    new DerivedOWrites[HNil, TT, W] {
+      def owrites(tagOwrites: TypeTagOWrites.Aux[W], adapter: NameAdapter) = OWrites[HNil] { _ => Json.obj() }
     }
 
-  implicit def owritesLabelledHListOpt[A, K <: Symbol, H, T <: HList, TT[A] <: TypeTag[A]](implicit
+  implicit def owritesLabelledHListOpt[A, K <: Symbol, H, T <: HList, TT[A] <: TypeTag[A], W[A]](implicit
     fieldName: Witness.Aux[K],
     owritesH: Lazy[Writes[H]],
-    owritesT: Lazy[DerivedOWrites[T, TT]]
-  ): DerivedOWrites[FieldType[K, Option[H]] :: T, TT] =
-    new DerivedOWrites[FieldType[K, Option[H]] :: T, TT] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = {
+    owritesT: Lazy[DerivedOWrites[T, TT, W]]
+  ): DerivedOWrites[FieldType[K, Option[H]] :: T, TT, W] =
+    new DerivedOWrites[FieldType[K, Option[H]] :: T, TT, W] {
+      def owrites(tagOwrites: TypeTagOWrites.Aux[W], adapter: NameAdapter) = {
         val adaptedName = adapter(fieldName.value.name)
         val derivedOwriteT = owritesT.value.owrites(tagOwrites, adapter)
         OWrites[FieldType[K, Option[H]] :: T] { case maybeH :: t =>
@@ -68,18 +71,17 @@ trait DerivedOWritesInstances1 extends DerivedOWritesInstances2 {
       }
     }
 
-  implicit def owritesCNil[TT[A] <: TypeTag[A]]: DerivedOWrites[CNil, TT] =
-    new DerivedOWrites[CNil, TT] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter): OWrites[CNil] = OWrites {
+  implicit def owritesCNil[TT[A] <: TypeTag[A], W[_]]: DerivedOWrites[CNil, TT, W] =
+    new DerivedOWrites[CNil, TT, W] {
+      def owrites(tagOwrites: TypeTagOWrites.Aux[W], adapter: NameAdapter): OWrites[CNil] =
         _ => sys.error("No JSON representation of CNil")
-      }
     }
 
-  implicit def owritesCoproduct[K <: Symbol, L, R <: Coproduct, TT[A] <: TypeTag[A]](implicit
-    owritesL: Lazy[DerivedOWrites[L, TT]],
-    owritesR: Lazy[DerivedOWrites[R, TT]],
+  implicit def owritesCoproduct[K <: Symbol, L, R <: Coproduct, TT[A] <: TypeTag[A], W[A] >: OWrites[A]](implicit
+    owritesL: Lazy[DerivedOWrites[L, TT, W]],
+    owritesR: Lazy[DerivedOWrites[R, TT, W]],
     typeTag: TT[FieldType[K, L]]
-  ): DerivedOWrites[FieldType[K, L] :+: R, TT] =
+  ): DerivedOWrites[FieldType[K, L] :+: R, TT, W] =
     DerivedOWritesUtil.makeCoProductOWrites(
       owritesL.value.owrites,
       owritesR,
@@ -88,13 +90,13 @@ trait DerivedOWritesInstances1 extends DerivedOWritesInstances2 {
 
 trait DerivedOWritesInstances2 extends DerivedOWritesInstances3 {
 
-  implicit def owritesLabelledHList[A, K <: Symbol, H, T <: HList, TT[A] <: TypeTag[A]](implicit
+  implicit def owritesLabelledHList[A, K <: Symbol, H, T <: HList, TT[A] <: TypeTag[A], W[A]](implicit
     fieldName: Witness.Aux[K],
     owritesH: Lazy[Writes[H]],
-    owritesT: Lazy[DerivedOWrites[T, TT]]
-  ): DerivedOWrites[FieldType[K, H] :: T, TT] =
-    new DerivedOWrites[FieldType[K, H] :: T, TT] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = {
+    owritesT: Lazy[DerivedOWrites[T, TT, W]]
+  ): DerivedOWrites[FieldType[K, H] :: T, TT, W] =
+    new DerivedOWrites[FieldType[K, H] :: T, TT, W] {
+      def owrites(tagOwrites: TypeTagOWrites.Aux[W], adapter: NameAdapter) = {
         val adaptedName = adapter(fieldName.value.name)
         val derivedOwritesT = owritesT.value.owrites(tagOwrites, adapter)
         OWrites[FieldType[K, H] :: T] { case h :: t =>
@@ -107,25 +109,25 @@ trait DerivedOWritesInstances2 extends DerivedOWritesInstances3 {
 
 trait DerivedOWritesInstances3 {
 
-  implicit def owritesGeneric[A, R, TT[A] <: TypeTag[A]](implicit
+  implicit def owritesGeneric[A, R, TT[A] <: TypeTag[A], W[A]](implicit
     gen: LabelledGeneric.Aux[A, R],
-    derivedOWrites: Lazy[DerivedOWrites[R, TT]]
-  ): DerivedOWrites[A, TT] =
-    new DerivedOWrites[A, TT] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) =
+    derivedOWrites: Lazy[DerivedOWrites[R, TT, W]]
+  ): DerivedOWrites[A, TT, W] =
+    new DerivedOWrites[A, TT, W] {
+      def owrites(tagOwrites: TypeTagOWrites.Aux[W], adapter: NameAdapter) =
         OWrites.contravariantfunctorOWrites.contramap(derivedOWrites.value.owrites(tagOwrites, adapter), gen.to)
     }
 
 }
 
 private[derived] object DerivedOWritesUtil {
-  def makeCoProductOWrites[K <: Symbol, L, R <: Coproduct, TT[A] <: TypeTag[A]](
-    makeOWritesL: (TypeTagOWrites, NameAdapter) => OWrites[L],
-    owritesR: Lazy[DerivedOWrites[R, TT]],
+  def makeCoProductOWrites[K <: Symbol, L, R <: Coproduct, TT[A] <: TypeTag[A], W[A] >: OWrites[A]](
+    makeOWritesL: (TypeTagOWrites.Aux[W], NameAdapter) => W[L],
+    owritesR: Lazy[DerivedOWrites[R, TT, W]],
     typeTag: TT[FieldType[K, L]]
-  ): DerivedOWrites[FieldType[K, L] :+: R, TT] =
-    new DerivedOWrites[FieldType[K, L] :+: R, TT] {
-      def owrites(tagOwrites: TypeTagOWrites, adapter: NameAdapter) = {
+  ): DerivedOWrites[FieldType[K, L] :+: R, TT, W] =
+    new DerivedOWrites[FieldType[K, L] :+: R, TT, W] {
+      def owrites(tagOwrites: TypeTagOWrites.Aux[W], adapter: NameAdapter) = {
         // we don't want to create the OWrites instance more than once
         val owritesL = makeOWritesL(tagOwrites, adapter)
         val derivedOwriteR = owritesR.value.owrites(tagOwrites, adapter)

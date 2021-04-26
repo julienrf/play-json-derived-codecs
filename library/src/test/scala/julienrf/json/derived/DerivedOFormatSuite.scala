@@ -52,6 +52,12 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
         implicit val fooFormat: OFormat[Foo] = withTypeTag.oformat(TypeTagSetting.FullClassName)
         identityLaw[Foo]
       }
+      {
+        implicit val fooFormat: OFormat[Foo] = withTypeTag.flat.oformat(
+          TypeTagSetting.FullClassName,
+          (__ \ "type").format[String])
+        identityLaw[Foo]
+      }
     }
 
     Scenario("recursive types") {
@@ -162,19 +168,31 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
   }
 
   Feature("user-defined type tags") {
+    sealed trait Foo
+    case class Bar(x: Int) extends Foo
+    case class Baz(s: String) extends Foo
+
+    implicit val barTypeTag: CustomTypeTag[Bar] = CustomTypeTag("_bar_")
+    implicit val bazTypeTag: CustomTypeTag[Baz] = CustomTypeTag("_baz_")
+
     Scenario("user-defined type tags") {
-      sealed trait Foo
-      case class Bar(x: Int) extends Foo
-      case class Baz(s: String) extends Foo
-
-      implicit val barTypeTag: CustomTypeTag[Bar] = CustomTypeTag("_bar_")
-      implicit val bazTypeTag: CustomTypeTag[Baz] = CustomTypeTag("_baz_")
-
       implicit val fooFormat: OFormat[Foo] = withTypeTag.oformat(TypeTagSetting.UserDefinedName)
 
       val foo: Foo = Bar(42)
       val json = fooFormat.writes(Bar(42))
       assert(json == Json.obj("_bar_" -> Json.obj("x" -> 42)))
+      assert(fooFormat.reads(json).asEither == Right(foo))
+    }
+
+    Scenario("user-defined type tags for a flat format") {
+      implicit val fooFormat: OFormat[Foo] = withTypeTag.flat.oformat(
+        TypeTagSetting.UserDefinedName,
+        (__ \ "type").format[String])
+
+      val foo: Foo = Bar(42)
+      val json = fooFormat.writes(Bar(42))
+
+      assert(json == Json.obj("type" -> "_bar_", "x" -> 42))
       assert(fooFormat.reads(json).asEither == Right(foo))
     }
   }
@@ -186,15 +204,15 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
       case class Baz(s: String) extends Foo
 
       object Bar {
-        implicit val format: OFormat[Bar] = {
-          val writes = OWrites[Bar] { bar =>
+        implicit val format: Format[Bar] = {
+          val writes = Writes[Bar] { bar =>
             Json.obj("y" -> bar.x)
           }
           val reads = Reads { json =>
             (json \ "y").validate[Int].map(Bar.apply)
           }
 
-          OFormat(reads, writes)
+          Format(reads, writes)
         }
       }
 
@@ -207,16 +225,13 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
       assert(fooFormat.reads(json).asEither == Right(foo))
     }
 
-    Scenario("user-defined 'Writes' is not used for derived implicits") {
+    Scenario("supports user-defined value-formats") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo
 
       object Bar {
-        // will be ignored, because it's not 'OWrites'
-        implicit val writes: Writes[Bar] = Writes { bar =>
-          Json.obj("y" -> bar.x)
-        }
+        implicit val format: Format[Bar] = Json.valueFormat
       }
 
       implicit val fooFormat: OFormat[Foo] = oformat()
@@ -224,8 +239,48 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
       val foo: Foo = Bar(42)
       val json = fooFormat.writes(foo)
 
-      assert(json == Json.obj("Bar" -> Json.obj("x" -> JsNumber(42))))
+      assert(json == Json.obj("Bar" -> JsNumber(42)))
       assert(fooFormat.reads(json).asEither == Right(foo))
+    }
+
+    Scenario("user-defined 'Writes' is not used for derived 'flat' implicits") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+
+      object Bar {
+        // will be ignored, because it's not 'OWrites' and we are using a 'flat' Format
+        implicit val writes: Writes[Bar] = Writes { bar =>
+          Json.obj("y" -> bar.x)
+        }
+      }
+
+      implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
+
+      val foo: Foo = Bar(42)
+      val json = fooFormat.writes(foo)
+
+      assert(json == Json.obj("type" -> "Bar", "x" -> JsNumber(42)))
+      assert(fooFormat.reads(json).asEither == Right(foo))
+    }
+
+    Scenario("a discrepancy between Reads and Writes when using value-format with 'flat'") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+
+      object Bar {
+        // will be ignored, because it's not 'OFormat' and we are using a 'flat' Format
+        implicit val format: Format[Bar] = Json.valueFormat
+      }
+
+      implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
+
+      val foo: Foo = Bar(42)
+      val json = fooFormat.writes(foo)
+
+      assert(json == Json.obj("type" -> "Bar", "x" -> JsNumber(42)))
+      assert(fooFormat.reads(json).isError)
     }
   }
 }
