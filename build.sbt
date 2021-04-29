@@ -1,15 +1,14 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-scalaVersion in ThisBuild := "2.13.3"
+ThisBuild / scalaVersion := "2.13.3"
 
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value, "2.12.8")
+ThisBuild / crossScalaVersions := Seq(scalaVersion.value, "2.12.8")
 
-
+ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
 
 val library =
   crossProject(JSPlatform, JVMPlatform)
     .crossType(CrossType.Pure)
-    .enablePlugins(GitVersioning)
     .settings(
       organization := "org.julienrf",
       name := "play-json-derived-codecs",
@@ -52,7 +51,7 @@ val library =
           case _ => Seq("-Yno-adapted-args", "-Ywarn-unused-import", "-Xfuture")
         })
       },
-      scalacOptions in Test += "-Yrangepos"
+      Test / scalacOptions += "-Yrangepos"
     )
 
 val libraryJVM = library.jvm

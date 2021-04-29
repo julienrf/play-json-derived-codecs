@@ -9,4 +9,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: coursier/cache-action@v5
       - uses: olafurpg/setup-scala@v10
-      - run: sbt +test
+      - run: git fetch --unshallow
+      - run: sbt +test libraryJVM/versionPolicyCheck
