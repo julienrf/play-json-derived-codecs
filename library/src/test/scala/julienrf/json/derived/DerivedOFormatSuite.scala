@@ -180,25 +180,25 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
   }
 
   Feature("user-defined implicits") {
-    Scenario("user-defined implicits are not overridden by derived implicits") {
+    Scenario("user-defined implicits are not overridden by derived implicits - nested") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo
 
       object Bar {
-        implicit val format: OFormat[Bar] = {
-          val writes = OWrites[Bar] { bar =>
+        implicit val format: Format[Bar] = {
+          val writes = Writes[Bar] { bar =>
             Json.obj("y" -> bar.x)
           }
           val reads = Reads { json =>
             (json \ "y").validate[Int].map(Bar.apply)
           }
 
-          OFormat(reads, writes)
+          Format(reads, writes)
         }
       }
 
-      implicit val fooFormat: OFormat[Foo] = oformat()
+      implicit val fooFormat = oformat[Foo]()
 
       val foo: Foo = Bar(42)
       val json = fooFormat.writes(foo)
@@ -207,24 +207,66 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
       assert(fooFormat.reads(json).asEither == Right(foo))
     }
 
-    Scenario("user-defined 'Writes' is not used for derived implicits") {
+    Scenario("user-defined implicits are not overridden by derived implicits - flat") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
       case class Baz(s: String) extends Foo
 
       object Bar {
-        // will be ignored, because it's not 'OWrites'
-        implicit val writes: Writes[Bar] = Writes { bar =>
-          Json.obj("y" -> bar.x)
+        implicit val format: Format[Bar] = {
+          val writes = Writes[Bar] { bar =>
+            Json.obj("y" -> bar.x)
+          }
+          val reads = Reads { json =>
+            (json \ "y").validate[Int].map(Bar.apply)
+          }
+
+          Format(reads, writes)
         }
       }
 
-      implicit val fooFormat: OFormat[Foo] = oformat()
+      implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
 
       val foo: Foo = Bar(42)
       val json = fooFormat.writes(foo)
 
-      assert(json == Json.obj("Bar" -> Json.obj("x" -> JsNumber(42))))
+      assert(json == Json.obj("type" -> "Bar", "y" -> JsNumber(42)))
+      assert(fooFormat.reads(json).asEither == Right(foo))
+    }
+
+    Scenario("supports user-defined value-formats") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+
+      object Bar {
+        implicit val format: Format[Bar] = Json.valueFormat
+      }
+
+      implicit val fooFormat = oformat[Foo]()
+
+      val foo: Foo = Bar(42)
+      val json = fooFormat.writes(foo)
+
+      assert(json == Json.obj("Bar" -> JsNumber(42)))
+      assert(fooFormat.reads(json).asEither == Right(foo))
+    }
+
+    Scenario("supports user-defined value-formats for the flat format by synthesizing a wrapper") {
+      sealed trait Foo
+      case class Bar(x: Int) extends Foo
+      case class Baz(s: String) extends Foo
+
+      object Bar {
+        implicit val format: Format[Bar] = Json.valueFormat
+      }
+
+      implicit val fooFormat: OFormat[Foo] = flat.oformat((__ \ "type").format[String])
+
+      val foo: Foo = Bar(42)
+      val json = fooFormat.writes(foo)
+
+      assert(json == Json.obj("type" -> "Bar", "__syntheticWrap__" -> JsNumber(42)))
       assert(fooFormat.reads(json).asEither == Right(foo))
     }
   }
