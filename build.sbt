@@ -4,7 +4,7 @@ ThisBuild / scalaVersion := "2.13.3"
 
 ThisBuild / crossScalaVersions := Seq(scalaVersion.value, "2.12.8")
 
-ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
+ThisBuild / versionPolicyIntention := Compatibility.None
 
 val library =
   crossProject(JSPlatform, JVMPlatform)
