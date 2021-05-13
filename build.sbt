@@ -6,7 +6,7 @@ ThisBuild / scalaVersion := "2.13.3"
 
 ThisBuild / crossScalaVersions := Seq(scalaVersion.value, "2.12.8")
 
-ThisBuild / versionPolicyIntention := Compatibility.None
+ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 
 ThisBuild / developers := List(
   Developer(
