@@ -151,11 +151,12 @@ This will cause `Second` to be read with `SecondReads`, and read with `SecondWri
 ### Avoiding redundant derivation
 
 By default, the auto-derivation mechanism will be applied to the whole sealed hierarchy. This might be costly in terms of compile-time (as Shapeless is being used under the hood).
-To avoid this, it is possible to define an `OFormat` for the different cases, thus only using auto-derivation for the branching in the sealed trait and nothing else.
+To avoid this, it is possible to define an `Format` for the different cases, thus only using auto-derivation for the branching in the sealed trait and nothing else.
 ~~~ scala
 sealed trait Hierarchy
-case class First(a: Int, b: Int, c: Int)
-case class Second(x: Int, y: Int, c: Int)
+
+case class First(a: Int, b: Int, c: Int) extends Hierarchy
+case class Second(x: Int, y: Int, c: Int) extends Hierarchy
 
 object First {
   implicit val format: OFormat[First] = Json.format
@@ -165,10 +166,25 @@ object Second {
   implicit val format: OFormat[Second] = Json.format
 }
 
-implicit val HierarchyFormat = derived.oformat[Hierarchy]
+implicit val HierarchyFormat = derived.oformat[Hierarchy]()
 ~~~
 
-Note: it's important that the provided `Format`s are of the specific `OFormat` sub-type, otherwise, they won't be picked up by the implicit machinery.
+**Important note**: in case `derived.flat` is being used, it's recommended that the provided `Format`s actually produce `JsObject`s. If that's not the case, a synthetic wrapper around the user-provided result will be generated on-the-fly.
+For this reason, `Json.valueFormat` and the like are not compatible with `derived.flat`, and it is best to avoid using them together.
+
+Here is what will happen if they are used together:
+~~~ scala
+sealed trait Foo
+case class Bar(x: Int) extends Foo
+
+object Bar {
+  implicit val format: Format[Bar] = Json.valueFormat
+}
+
+implicit val fooFormat = derived.flat.oformat[Foo]((__ \ "type").format[String])
+
+Json.toJson(Bar(42)) // { "type": "Bar", "__syntheticWrap__": 42 }
+~~~
 
 Without the provided `Format`s the derivation mechanism will traverse all the fields in the hierarchy (in this case 6 in total), which may be costly for larger case classes.
 
