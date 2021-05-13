@@ -1,16 +1,35 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
+ThisBuild / organization := "org.julienrf"
+
 ThisBuild / scalaVersion := "2.13.3"
 
 ThisBuild / crossScalaVersions := Seq(scalaVersion.value, "2.12.8")
 
 ThisBuild / versionPolicyIntention := Compatibility.None
 
+ThisBuild / developers := List(
+  Developer(
+    "julienrf",
+    "Julien Richard-Foy",
+    "julien@richard-foy.fr",
+    url("http://julien.richard-foy.fr")
+  )
+)
+ThisBuild / homepage := Some(url(s"https://github.com/julienrf/play-json-derived-codecs"))
+ThisBuild / licenses := Seq("MIT License" -> url("http://opensource.org/licenses/mit-license.php"))
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url(s"https://github.com/julienrf/play-json-derived-codecs"),
+    s"scm:git:git@github.com:julienrf/play-json-derived-codecs.git"
+  )
+)
+
+
 val library =
   crossProject(JSPlatform, JVMPlatform)
     .crossType(CrossType.Pure)
     .settings(
-      organization := "org.julienrf",
       name := "play-json-derived-codecs",
       libraryDependencies ++= Seq(
         "com.chuusai" %%% "shapeless" % "2.3.3",
@@ -18,22 +37,6 @@ val library =
         "org.scalacheck" %%% "scalacheck" % "1.15.2" % Test,
         "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.3.0" % Test,
         "com.typesafe.play" %%% "play-json" % "2.9.2"
-      ),
-      developers := List(
-        Developer(
-          "julienrf",
-          "Julien Richard-Foy",
-          "julien@richard-foy.fr",
-          url("http://julien.richard-foy.fr")
-        )
-      ),
-      homepage := Some(url(s"https://github.com/julienrf/${name.value}")),
-      licenses := Seq("MIT License" -> url("http://opensource.org/licenses/mit-license.php")),
-      scmInfo := Some(
-        ScmInfo(
-          url(s"https://github.com/julienrf/${name.value}"),
-          s"scm:git:git@github.com:julienrf/${name.value}.git"
-        )
       ),
       scalacOptions ++= {
         Seq(
