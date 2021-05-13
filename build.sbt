@@ -7,6 +7,8 @@ ThisBuild / scalaVersion := "2.13.3"
 ThisBuild / crossScalaVersions := Seq(scalaVersion.value, "2.12.8")
 
 ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
+// Temporary, because version 10.0.0 was invalid
+ThisBuild / versionPolicyPreviousVersions := Seq("10.0.1")
 
 ThisBuild / developers := List(
   Developer(
