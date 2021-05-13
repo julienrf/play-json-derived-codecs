@@ -139,7 +139,6 @@ object TypeTagReads {
     *
     * @param tagReads A way to decode the type tag value.
     */
-  //TODO docs on edge case
   def flat(tagReads: Reads[String]): TypeTagReads =
     new TypeTagReads {
       def reads[A](typeName: String, reads: Reads[A]): Reads[A] = {

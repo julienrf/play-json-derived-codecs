@@ -269,5 +269,61 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
       assert(json == Json.obj("type" -> "Bar", "__syntheticWrap__" -> JsNumber(42)))
       assert(fooFormat.reads(json).asEither == Right(foo))
     }
+
+    import TestHelpers._
+    val adt = Z(X(1), Y("VVV"))
+
+    Scenario("supports user-defined recursive formats - nested") {
+      val adtFormat: Format[ADTBase] = {
+        implicit val f1: Format[X] = Json.format
+        implicit val f2: Format[Y] = Json.format
+        implicit lazy val f3: Format[Z] = Json.format
+
+        implicit lazy val f4: Format[ADTBase] = oformat[ADTBase]()
+
+        f4
+      }
+
+      val json = adtFormat.writes(adt)
+      val obj = Json.obj(
+        "Z" -> Json.obj(
+          "l" -> Json.obj("X" -> Json.obj("a" -> 1)),
+          "r" -> Json.obj("Y" -> Json.obj("b" -> "VVV"))))
+
+      assert(json == obj)
+      assert(adtFormat.reads(json).asEither == Right(adt))
+    }
+
+    Scenario("supports user-defined recursive formats - flat") {
+      val adtFormat: Format[ADTBase] = {
+        implicit val f1: Format[X] = Json.format
+        implicit val f2: Format[Y] = Json.format
+        implicit lazy val f3: Format[Z] = Json.format
+
+        implicit lazy val f4: Format[ADTBase] = flat.oformat((__ \ "type").format[String])
+
+        f4
+      }
+
+      val json = adtFormat.writes(adt)
+      val obj = Json.obj(
+        "type" -> "Z",
+        "l" -> Json.obj("type" -> "X", "a" -> 1),
+        "r" -> Json.obj("type" -> "Y", "b" -> "VVV"))
+
+      assert(json == obj)
+      assert(adtFormat.reads(json).asEither == Right(adt))
+    }
   }
+}
+
+
+object TestHelpers {
+  // Placing it here in a separate object since otherwise the Json.format macro fails to compile
+  // for these types
+  sealed trait ADTBase
+
+  case class X(a: Int) extends ADTBase
+  case class Y(b: String) extends ADTBase
+  case class Z(l: ADTBase, r: ADTBase) extends ADTBase
 }
