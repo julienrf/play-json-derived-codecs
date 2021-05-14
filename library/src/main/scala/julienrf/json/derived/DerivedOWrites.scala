@@ -32,7 +32,7 @@ trait DerivedOWritesInstances extends DerivedOWritesInstances1 {
     typeTag: TT[FieldType[K, L]]
   ): DerivedOWrites[FieldType[K, L] :+: R, TT] =
     DerivedOWritesUtil.makeCoProductOWrites(
-      (_, _) => writesL.value,
+      (_, _) => writesL,
       owritesR,
       typeTag)
 }
@@ -77,7 +77,7 @@ trait DerivedOWritesInstances1 extends DerivedOWritesInstances2 {
     typeTag: TT[FieldType[K, L]]
   ): DerivedOWrites[FieldType[K, L] :+: R, TT] =
     DerivedOWritesUtil.makeCoProductOWrites(
-      owritesL.value.owrites,
+      (tagOwrites, adapter) => owritesL.map(_.owrites(tagOwrites, adapter)),
       owritesR,
       typeTag)
 }
@@ -116,7 +116,7 @@ trait DerivedOWritesInstances3 {
 
 private[derived] object DerivedOWritesUtil {
   def makeCoProductOWrites[K <: Symbol, L, R <: Coproduct, TT[A] <: TypeTag[A]](
-    makeWritesL: (TypeTagOWrites, NameAdapter) => Writes[L],
+    makeWritesL: (TypeTagOWrites, NameAdapter) => Lazy[Writes[L]],
     owritesR: Lazy[DerivedOWrites[R, TT]],
     typeTag: TT[FieldType[K, L]]
   ): DerivedOWrites[FieldType[K, L] :+: R, TT] =
@@ -127,7 +127,7 @@ private[derived] object DerivedOWritesUtil {
         val derivedOwriteR = owritesR.value.owrites(tagOwrites, adapter)
 
         OWrites[FieldType[K, L] :+: R] {
-          case Inl(l) => tagOwrites.owrites(typeTag.value, writesL).writes(l)
+          case Inl(l) => tagOwrites.owrites(typeTag.value, writesL.value).writes(l)
           case Inr(r) => derivedOwriteR.writes(r)
         }
       }

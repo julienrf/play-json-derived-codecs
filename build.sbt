@@ -1,4 +1,5 @@
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import com.typesafe.tools.mima.core.{IncompatibleSignatureProblem, ProblemFilters}
+import sbtcrossproject.CrossPlugin.autoImport.{CrossType, crossProject}
 
 ThisBuild / organization := "org.julienrf"
 
@@ -9,6 +10,11 @@ ThisBuild / crossScalaVersions := Seq(scalaVersion.value, "2.12.8")
 ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 // Temporary, because version 10.0.0 was invalid
 ThisBuild / versionPolicyPreviousVersions := Seq("10.0.1")
+
+ThisBuild / mimaBinaryIssueFilters ++= Seq(
+  // package private method
+  ProblemFilters.exclude[IncompatibleSignatureProblem]("julienrf.json.derived.DerivedOWritesUtil.makeCoProductOWrites")
+)
 
 ThisBuild / developers := List(
   Developer(
