@@ -22,16 +22,16 @@ import julienrf.json.derived
 case class User(name: String, age: Int)
 
 object User {
-  implicit val reads: Reads[User] = derived.reads
+  implicit val reads: Reads[User] = derived.reads()
 }
 ~~~
 
 The [API](https://www.javadoc.io/doc/org.julienrf/play-json-derived-codecs_2.12) is simple: the object
 `julienrf.json.derived` has just three methods.
 
-- `reads[A]`, derives a `Reads[A]` ;
-- `owrites[A]`, derives a `OWrites[A]` ;
-- `oformat[A]`, derives a `OFormat[A]`.
+- `reads[A]()`, derives a `Reads[A]` ;
+- `owrites[A]()`, derives a `OWrites[A]` ;
+- `oformat[A]()`, derives a `OFormat[A]`.
 
 ### Representation of Sum Types
 
