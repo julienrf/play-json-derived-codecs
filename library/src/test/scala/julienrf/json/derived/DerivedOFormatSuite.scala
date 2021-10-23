@@ -161,7 +161,9 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
     }
   }
 
-  Feature("user-defined type tags") {
+  Feature("type tags") {
+    import TestHelpers._
+
     Scenario("user-defined type tags") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
@@ -176,6 +178,11 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
       val json = fooFormat.writes(Bar(42))
       assert(json == Json.obj("_bar_" -> Json.obj("x" -> 42)))
       assert(fooFormat.reads(json).asEither == Right(foo))
+    }
+
+    Scenario("ShortClassName should tag the class name as defined") {
+      implicit val defaultFormat: OFormat[CompositeNameClass] = withTypeTag
+        .oformat[CompositeNameClass](TypeTagSetting.ShortClassName)
     }
   }
 
@@ -326,4 +333,11 @@ object TestHelpers {
   case class X(a: Int) extends ADTBase
   case class Y(b: String) extends ADTBase
   case class Z(l: ADTBase, r: ADTBase) extends ADTBase
+
+  sealed trait CompositeNameClass
+
+  case class FooBar(inner: Boolean) extends CompositeNameClass
+  case class fooBarry(inner: Boolean) extends CompositeNameClass
+  case class foo_barrier(inner: Boolean) extends CompositeNameClass
+  case class BarFoo(inner: FooBar) extends CompositeNameClass
 }
