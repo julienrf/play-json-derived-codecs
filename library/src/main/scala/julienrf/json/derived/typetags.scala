@@ -1,6 +1,6 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat, OWrites, Reads, Writes, __}
+import play.api.libs.json.{JsObject, JsValue, Json, OFormat, OWrites, Reads, Writes, __}
 import shapeless.Witness
 import shapeless.labelled.FieldType
 import scala.language.higherKinds
