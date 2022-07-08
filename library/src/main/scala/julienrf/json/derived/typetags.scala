@@ -1,6 +1,6 @@
 package julienrf.json.derived
 
-import play.api.libs.json.{JsObject, JsResult, JsValue, Json, OFormat, OWrites, Reads, Writes, __}
+import play.api.libs.json.{JsObject, JsValue, Json, OFormat, OWrites, Reads, Writes, __}
 import shapeless.Witness
 import shapeless.labelled.FieldType
 import scala.language.higherKinds
@@ -223,6 +223,16 @@ object TypeTag {
       }
   }
 
+  /** Use the class name converted to use snake_case as a type tag */
+  trait ShortClassNameSnakeCase[A] extends TypeTag[A]
+
+  object ShortClassNameSnakeCase {
+    implicit def fromWitness[K <: Symbol, A](implicit wt: Witness.Aux[K]): ShortClassNameSnakeCase[FieldType[K, A]] =
+      new ShortClassNameSnakeCase[FieldType[K, A]] {
+        def value: String = play.api.libs.json.JsonNaming.SnakeCase.apply(wt.value.name)
+      }
+  }
+
   /** Use the fully qualified JVM name of the class as a type tag */
   trait FullClassName[A] extends TypeTag[A]
 
@@ -256,6 +266,10 @@ object TypeTagSetting {
 
   object ShortClassName extends TypeTagSetting {
     type Value[A] = TypeTag.ShortClassName[A]
+  }
+
+  object ShortClassNameSnakeCase extends TypeTagSetting {
+    type Value[A] = TypeTag.ShortClassNameSnakeCase[A]
   }
 
   object FullClassName extends TypeTagSetting {

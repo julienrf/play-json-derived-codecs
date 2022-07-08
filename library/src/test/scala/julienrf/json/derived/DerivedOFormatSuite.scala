@@ -4,7 +4,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.featurespec.AnyFeatureSpec
 import org.scalatestplus.scalacheck.Checkers
-import play.api.libs.json.{Format, JsNumber, Json, OFormat, OWrites, Reads, Writes, __}
+import play.api.libs.json.{Format, JsArray, JsNumber, JsObject, Json, OFormat, OWrites, Reads, Writes, __}
 
 class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
 
@@ -161,7 +161,10 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
     }
   }
 
-  Feature("user-defined type tags") {
+  Feature("type tags") {
+    import TestHelpers._
+    import julienrf.json.derived
+
     Scenario("user-defined type tags") {
       sealed trait Foo
       case class Bar(x: Int) extends Foo
@@ -176,6 +179,23 @@ class DerivedOFormatSuite extends AnyFeatureSpec with Checkers {
       val json = fooFormat.writes(Bar(42))
       assert(json == Json.obj("_bar_" -> Json.obj("x" -> 42)))
       assert(fooFormat.reads(json).asEither == Right(foo))
+    }
+
+    Scenario("ShortClassNameSnakeCase should format tag names using snake casing") {
+      implicit lazy val demoClassFormat: OFormat[CompositeNameClass] = derived
+        .withTypeTag
+        .oformat[CompositeNameClass](TypeTagSetting.ShortClassNameSnakeCase)
+
+      val inner = Seq(FooBar(true), fooBarry(true), foo_barrier(true))
+      val barFoo: CompositeNameClass = BarFoo(inner)
+      val parsed = Json.toJsObject(barFoo)
+      val parsedInner = ((parsed \ "bar_foo") \ "inner")
+        .as[JsArray]
+        .value
+        .map(_.as[JsObject])
+
+      assert(validSnakeNames.contains(parsed.keys.head))
+      assert(parsedInner.map(_.keys.head).forall(validSnakeNames.contains))
     }
   }
 
@@ -326,4 +346,14 @@ object TestHelpers {
   case class X(a: Int) extends ADTBase
   case class Y(b: String) extends ADTBase
   case class Z(l: ADTBase, r: ADTBase) extends ADTBase
+
+  sealed trait CompositeNameClass
+
+  case class FooBar(inner: Boolean) extends CompositeNameClass
+  case class fooBarry(inner: Boolean) extends CompositeNameClass
+  case class foo_barrier(inner: Boolean) extends CompositeNameClass
+  case class BarFoo(inner: Seq[CompositeNameClass]) extends CompositeNameClass
+
+  lazy val validSnakeNames: Set[String] =
+    Set("foo_bar", "foo_barry", "foo_barrier", "bar_foo")
 }
