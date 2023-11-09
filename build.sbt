@@ -42,7 +42,7 @@ val library =
         "org.scalatest" %%% "scalatest" % "3.2.3" % Test,
         "org.scalacheck" %%% "scalacheck" % "1.15.2" % Test,
         "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.3.0" % Test,
-        "com.typesafe.play" %%% "play-json" % "2.9.2"
+        "org.playframework" %%% "play-json" % "3.0.1"
       ),
       scalacOptions ++= {
         Seq(
