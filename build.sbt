@@ -7,7 +7,7 @@ ThisBuild / scalaVersion := "2.13.3"
 
 ThisBuild / crossScalaVersions := Seq(scalaVersion.value, "2.12.8")
 
-ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
+ThisBuild / versionPolicyIntention := Compatibility.None
 
 ThisBuild / mimaBinaryIssueFilters ++= Seq(
   // package private method
